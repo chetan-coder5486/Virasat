@@ -24,6 +24,11 @@ const userSchema = new mongoose.Schema({
         default:'Viewer',
         required: true
     },
+    family:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"Family",
+        default:null
+    },
     profile:{
         bio:{type: String},
         family:{type:mongoose.Schema.Types.ObjectId, ref:"Family"},

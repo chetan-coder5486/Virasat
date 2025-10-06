@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
-import { createFamily } from "@/redux/familySlice"; // Adjust import path
+import { createFamily } from "@/redux/familyThunks"; // Adjust import path
 import Navbar from "./shared/Navbar";
 
 export default function CreateFamilyDashboard() {

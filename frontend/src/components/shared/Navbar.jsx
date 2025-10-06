@@ -1,6 +1,5 @@
 import React from "react";
 import { useSelector, useDispatch } from "react-redux";
-// FIX 1: Import Link from 'react-router-dom', not 'react-router'
 import { Link } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -10,15 +9,25 @@ import {
 } from "@/components/ui/popover";
 import { LogOut, User2 } from "lucide-react";
 import { Button } from "../ui/button";
-import { logoutUser } from "@/redux/authSlice";
+import { logoutUser } from "@/redux/authThunks";
 
 const Navbar = () => {
   const dispatch = useDispatch();
-  const isLogged = useSelector((store) => store.auth.isLogged);
+  // FIX 1: Use the new, more robust state from the authSlice
+  const { isAuthenticated, user } = useSelector((store) => store.auth);
 
   const handleLogout = () => {
-    // FIX 2: You must call the thunk when dispatching
     dispatch(logoutUser());
+  };
+
+  // Helper function to get initials from the user's name
+  const getInitials = (name) => {
+    if (!name) return "U"; // Default fallback
+    const names = name.split(' ');
+    if (names.length > 1) {
+      return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
   };
 
   return (
@@ -34,12 +43,12 @@ const Navbar = () => {
         {/* Navigation Links & User Menu / Login Buttons */}
         <div className="flex items-center space-x-8">
           <nav className="hidden items-center space-x-8 md:flex">
-            {isLogged ? (
+            {/* FIX 2: Conditional rendering now uses 'isAuthenticated' */}
+            {isAuthenticated ? (
               <>
                 <Link to={"/dashboard"} className="font-medium text-rose-700 hover:text-rose-900 transition-colors">
                   Dashboard
                 </Link>
-                {/* FIX 3: Added the missing 'to' prop for navigation */}
                 <Link to={"/stories"} className="font-medium text-rose-700 hover:text-rose-900 transition-colors">
                   Stories
                 </Link>
@@ -51,7 +60,6 @@ const Navbar = () => {
                 </Link>
               </>
             ) : (
-              // FIX 4: Removed unnecessary <button> wrappers. The <Link> is the button.
               <>
                 <Link
                   to={"/login"}
@@ -69,26 +77,30 @@ const Navbar = () => {
             )}
           </nav>
 
-          {/* User Avatar Popover OR Share a Story Button */}
-          {isLogged && (
-            // FIX 5: This section now correctly renders the Popover only when logged in
+          {/* User Avatar Popover */}
+          {isAuthenticated && user && (
             <Popover>
-              <PopoverTrigger>
-                <Avatar>
-                  <AvatarImage src="https://github.com/shadcn.png" />
-                  <AvatarFallback>CN</AvatarFallback>
+              <PopoverTrigger asChild>
+                <Avatar className="cursor-pointer">
+                  {/* FIX 3: Avatar image is now dynamic from user data */}
+                  <AvatarImage src={user.profilePic} alt={user.name} />
+                  <AvatarFallback className="bg-rose-200 text-rose-800 font-bold">
+                    {getInitials(user.name)}
+                  </AvatarFallback>
                 </Avatar>
               </PopoverTrigger>
               <PopoverContent className="w-80 bg-white">
                 <div className="flex gap-4">
                   <Avatar>
-                    <AvatarImage src="https://github.com/shadcn.png" />
+                    <AvatarImage src={user.profilePic} alt={user.name} />
+                    <AvatarFallback className="bg-rose-200 text-rose-800 font-bold">
+                      {getInitials(user.name)}
+                    </AvatarFallback>
                   </Avatar>
                   <div className="space-y-1">
-                    <h4 className="font-medium">Username</h4>
-                    <p className="text-sm text-muted-foreground">
-                      A member of the family trunk.
-                    </p>
+                    {/* FIX 4: Username is now dynamic */}
+                    <h4 className="font-medium">{user.name}</h4>
+                    <p className="text-sm text-muted-foreground">{user.email}</p>
                   </div>
                 </div>
                 <div className="flex flex-col my-2 text-gray-600 mt-4">

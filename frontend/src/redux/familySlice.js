@@ -1,58 +1,52 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
-import { toast } from 'react-hot-toast';
-import { FAMILY_API_ENDPOINT } from '@/utils/constant';
+import { createSlice } from '@reduxjs/toolkit';
+import { createFamily, getFamilyDetails } from './familyThunks'; // Import from thunks file
+import { loginUser } from './authThunks';      // Import from thunks file
 
-// FIX 1: The async thunk now accepts `familyName` to match the backend schema.
-export const createFamily = createAsyncThunk(
-    'family/create',
-    async ({ familyName, description }, { rejectWithValue }) => {
-        try {
-            // FIX 2: The payload sent to the API now uses the correct `familyName` key.
-            const response = await axios.post(`${FAMILY_API_ENDPOINT}/create`,
-                { familyName, description },
-                { withCredentials: true }
-            );
-            toast.success("Family created successfully!");
-            return response.data.family; // Return the new family object from the API
-        } catch (error) {
-            const message = error.response?.data?.message || 'Failed to create family.';
-            toast.error(message);
-            return rejectWithValue(message);
-        }
-    }
-);
 
 const familySlice = createSlice({
     name: 'family',
     initialState: {
-        familyData: null, // IMPROVEMENT: Store the actual family data
+        familyData: null,
         loading: false,
-        isFamily: false, // Tracks if user has a family
+        isFamily: false,
         error: null,
     },
-    reducers: {
-        // You can add other reducers here if needed
-    },
+    reducers: {},
     extraReducers: (builder) => {
         builder
+            .addCase(createFamily.fulfilled, (state, action) => {
+                state.isFamily = true;
+                state.familyData = action.payload;
+                state.loading = false;
+            })
+            // This part will now work correctly
+            .addCase(loginUser.fulfilled, (state, action) => {
+                state.isFamily = action.payload.isFamily;
+                state.familyData = action.payload.family || null; // Assume login payload might have family data
+            })
+            // Add pending/rejected cases for robustness
             .addCase(createFamily.pending, (state) => {
                 state.loading = true;
-                state.error = null;
-            })
-            .addCase(createFamily.fulfilled, (state, action) => {
-                state.loading = false;
-                state.isFamily = true;
-                // IMPROVEMENT: Store the family data in the state
-                state.familyData = action.payload; 
             })
             .addCase(createFamily.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
+            })
+            // Handle getFamilyDetails actions
+            .addCase(getFamilyDetails.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(getFamilyDetails.fulfilled, (state, action) => {
+                state.loading = false;
+                state.familyData = action.payload; // <-- PERSISTENCE!
+                state.isFamily = true; // Ensure this is also set
+            })
+            .addCase(getFamilyDetails.rejected, (state) => {
+                state.loading = false;
+                state.isFamily = false;
+                state.familyData = null;
             });
     }
 });
-
-
 
 export default familySlice.reducer;

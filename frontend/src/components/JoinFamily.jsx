@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-hot-toast";
-import { USER_API_ENDPOINT } from "@/utils/constant";
+import { USER_API_ENDPOINT, FAMILY_API_ENDPOINT } from "@/utils/constant";
+
 const FamilyIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -28,48 +29,52 @@ export default function JoinFamily() {
   const [inviteCode, setInviteCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-
-  // To manage the multi-step flow
-  const [verificationData, setVerificationData] = useState(null); // Will hold { familyName, etc. }
+  const [verificationData, setVerificationData] = useState(null);
   const [isVerified, setIsVerified] = useState(false);
-
-  // Get login status from Redux
-  const { isLogged } = useSelector((store) => store.auth);
+  const [searchParams] = useSearchParams();
+  const { isAuthenticated } = useSelector((store) => store.auth);
   const navigate = useNavigate();
 
-  // Step 1: Verify the invitation code
-  const handleVerifyInvite = async (e) => {
-    e.preventDefault();
+  const handleVerifyInvite = async (tokenToVerify) => {
+    const code = typeof tokenToVerify === 'string' ? tokenToVerify : inviteCode;
+
+    if (typeof tokenToVerify.preventDefault === 'function') {
+      tokenToVerify.preventDefault();
+    }
+    
     setIsLoading(true);
     setError("");
     try {
+      // FIX: Use the 'code' variable here, NOT 'inviteCode' from state, to avoid stale state issues.
       const response = await axios.post(`${USER_API_ENDPOINT}/verify-invite`, {
-        token: inviteCode,
+        token: code,
       });
       if (response.data.success) {
-        setVerificationData(response.data.data); // Save decoded data
+        setVerificationData(response.data.data);
         setIsVerified(true);
         toast.success("Invitation is valid!");
       }
     } catch (err) {
-      setError(err.response?.data?.message || "Invalid or expired invitation.");
-      toast.error(
-        err.response?.data?.message || "Invalid or expired invitation."
-      );
+      const message = err.response?.data?.message || "Invalid or expired invitation.";
+      setError(message);
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
   };
+  
+  useEffect(() => {
+    const tokenFromUrl = searchParams.get('token');
+    if (tokenFromUrl) {
+      setInviteCode(tokenFromUrl);
+      handleVerifyInvite(tokenFromUrl);
+    }
+  }, [searchParams]);
 
-  // Step 2: Accept the invitation
   const handleAcceptInvite = async () => {
-    // If user is not logged in, redirect them to login page
-    // Pass the invite token in state so we can complete the action after login
-    if (!isLogged) {
-      toast.error(
-        "Please log in or create an account to accept the invitation."
-      );
-      navigate("/login", { state: { from: "/join", inviteToken: inviteCode } });
+    if (!isAuthenticated) {
+      toast.error("Please log in or create an account to accept the invitation.");
+      navigate("/login", { state: { from: "/join-family", inviteToken: inviteCode } });
       return;
     }
 
@@ -77,17 +82,18 @@ export default function JoinFamily() {
     setError("");
     try {
       const response = await axios.post(
-        `${USER_API_ENDPOINT}/accept-invite`,
+        `${FAMILY_API_ENDPOINT}/accept-invite`,
         { token: inviteCode },
-        { withCredentials: true } // Important: send cookies for auth
+        { withCredentials: true }
       );
       if (response.data.success) {
         toast.success(response.data.message);
-        navigate("/dashboard"); // Redirect to dashboard on success
+        navigate("/dashboard");
       }
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to join family.");
-      toast.error(err.response?.data?.message || "Failed to join family.");
+      const message = err.response?.data?.message || "Failed to join family.";
+      setError(message);
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -117,7 +123,7 @@ export default function JoinFamily() {
                 transition={{ duration: 0.3 }}
               >
                 <p className="text-rose-700 mt-3 mb-8">
-                  Enter the invitation code to verify your invitation.
+                  Enter the invitation code below to verify your invitation.
                 </p>
                 <form onSubmit={handleVerifyInvite} className="space-y-4">
                   <input
@@ -165,7 +171,7 @@ export default function JoinFamily() {
                 >
                   {isLoading
                     ? "Joining..."
-                    : isLogged
+                    : isAuthenticated
                     ? "Accept & Join Family"
                     : "Login to Accept"}
                 </motion.button>

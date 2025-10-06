@@ -1,48 +1,38 @@
 import React, { useState } from "react";
 import AuthNavbar from "../shared/AuthNavbar";
-import axios from "axios"; // Assuming you use axios
-import { useNavigate } from "react-router-dom"; // For navigation
-import { useDispatch } from "react-redux"; // For Redux state
-import toast from "react-hot-toast"; // For notifications
-import { setLoading,loginSuccess } from "../../redux/authSlice"; // Redux action
-import { USER_API_ENDPOINT } from "../../utils/constant.js" // API endpoint
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { loginUser } from "../../redux/authThunks"; // FIX 1: Import the async thunk
 
 const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { loading } = useSelector(state => state.auth); // Get loading state from Redux
 
-  // Step 1: Initialize state for form inputs
   const [input, setInput] = useState({
     email: "",
     password: "",
   });
 
-  // This function updates the state when the user types
   const changeEventHandler = (e) => {
     setInput({ ...input, [e.target.name]: e.target.value });
   };
 
-  // This function handles the logic when the form is submitted
+  // FIX 2: The submit handler is now much simpler
   const submitHandler = async (e) => {
     e.preventDefault();
     try {
-      dispatch(setLoading(true));
-      const res = await axios.post(`${USER_API_ENDPOINT}/login`, input, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        withCredentials: true,
-      });
-      if (res.data.success) {
-        navigate("/");
-        toast.success(res.data.message);
-        dispatch(loginSuccess());
-      }
+      // Dispatch the thunk and wait for it to complete.
+      // .unwrap() will return the fulfilled action's payload or throw an error.
+      await dispatch(loginUser(input)).unwrap();
+      
+      // Navigate only after the login is successful
+      navigate("/"); 
     } catch (error) {
-      console.log("Error in login:", error);
-      toast.error(error.response.data.message);
-    } finally {
-      dispatch(setLoading(false));
+      // The error toast is already handled inside the thunk's rejectWithValue.
+      // We can log the error here for debugging if needed.
+      console.error("Failed to login:", error);
     }
   };
 
@@ -67,7 +57,6 @@ const Login = () => {
               </p>
             </div>
 
-            {/* Step 3: Add onSubmit to the form tag */}
             <form onSubmit={submitHandler} className="space-y-5">
               <div>
                 <label
@@ -80,7 +69,6 @@ const Login = () => {
                   type="email"
                   id="email"
                   name="email"
-                  // Step 2: Bind the input's value to state
                   value={input.email}
                   onChange={changeEventHandler}
                   className="mt-1 block w-full rounded-lg border-rose-300 bg-white/50 p-2.5 shadow-sm transition focus:border-rose-500 focus:ring focus:ring-rose-400 focus:ring-opacity-50"
@@ -100,7 +88,6 @@ const Login = () => {
                   type="password"
                   id="password"
                   name="password"
-                  // Step 2: Bind the input's value to state
                   value={input.password}
                   onChange={changeEventHandler}
                   className="mt-1 block w-full rounded-lg border-rose-300 bg-white/50 p-2.5 shadow-sm transition focus:border-rose-500 focus:ring focus:ring-rose-400 focus:ring-opacity-50"
@@ -109,12 +96,13 @@ const Login = () => {
                 />
               </div>
 
-              {/* The button's type="submit" triggers the form's onSubmit */}
+              {/* FIX 3: Disable button based on loading state from Redux */}
               <button
                 type="submit"
-                className="w-full rounded-xl bg-rose-600 px-6 py-3 text-lg font-medium text-white shadow-md transition-colors duration-300 hover:bg-rose-700"
+                disabled={loading}
+                className="w-full rounded-xl bg-rose-600 px-6 py-3 text-lg font-medium text-white shadow-md transition-colors duration-300 hover:bg-rose-700 disabled:bg-rose-400 disabled:cursor-not-allowed"
               >
-                Log In
+                {loading ? "Logging in..." : "Log In"}
               </button>
             </form>
 

@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import "./Family.css"; // Dedicated CSS for Family Tree layout
 import Navbar from "./shared/Navbar";
+import { Button } from "@/components/ui/button";
+import { UserPlus } from "lucide-react";
+import { InviteMemberPopover } from "@/components/InviteMemberPopover";
 
 // Placeholder for profile images
 const getProfileImage = (name) => {
@@ -110,7 +113,7 @@ const Family = () => {
 
   return (
     <>
-    <Navbar/>
+      <Navbar />
       <div className="family-tree-page-container">
         {/* Page Title */}
         <h1 className="page-title">Our Family Tree</h1>
@@ -118,11 +121,9 @@ const Family = () => {
           Explore the roots and branches of our shared history.
         </p>
 
-        {/* Tree Management Controls */}
+        {/* 3. The "Add New Member" button is now the PopoverTrigger */}
         <div className="tree-controls">
-          <button className="btn-add-member">
-            <span className="text-xl mr-2">+</span> Add New Member
-          </button>
+            <InviteMemberPopover />
         </div>
 
         {/* Main Family Tree Diagram Area */}
@@ -271,6 +272,7 @@ const Family = () => {
             </motion.div>
           )}
         </AnimatePresence>
+        {/* 4. The Popover Content is placed here. It will appear when triggered. */}
       </div>
     </>
   );
