@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSelector } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -35,47 +35,59 @@ export default function JoinFamily() {
   const { isAuthenticated } = useSelector((store) => store.auth);
   const navigate = useNavigate();
 
-  const handleVerifyInvite = async (tokenToVerify) => {
-    const code = typeof tokenToVerify === 'string' ? tokenToVerify : inviteCode;
+  // 2. Wrap the handler in useCallback for stability and performance
+  const handleVerifyInvite = useCallback(
+    async (tokenToVerify) => {
+      const code =
+        typeof tokenToVerify === "string" ? tokenToVerify : inviteCode;
 
-    if (typeof tokenToVerify.preventDefault === 'function') {
-      tokenToVerify.preventDefault();
-    }
-    
-    setIsLoading(true);
-    setError("");
-    try {
-      // FIX: Use the 'code' variable here, NOT 'inviteCode' from state, to avoid stale state issues.
-      const response = await axios.post(`${USER_API_ENDPOINT}/verify-invite`, {
-        token: code,
-      });
-      if (response.data.success) {
-        setVerificationData(response.data.data);
-        setIsVerified(true);
-        toast.success("Invitation is valid!");
+      if (typeof tokenToVerify.preventDefault === "function") {
+        tokenToVerify.preventDefault();
       }
-    } catch (err) {
-      const message = err.response?.data?.message || "Invalid or expired invitation.";
-      setError(message);
-      toast.error(message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
+
+      setIsLoading(true);
+      setError("");
+      try {
+        const response = await axios.post(
+          `${USER_API_ENDPOINT}/verify-invite`,
+          {
+            token: code,
+          }
+        );
+        if (response.data.success) {
+          setVerificationData(response.data.data);
+          setIsVerified(true);
+          toast.success("Invitation is valid!");
+        }
+      } catch (err) {
+        const message =
+          err.response?.data?.message || "Invalid or expired invitation.";
+        setError(message);
+        toast.error(message);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [inviteCode]
+  ); // Dependency for when user types manually
+
   useEffect(() => {
-    const tokenFromUrl = searchParams.get('token');
+    const tokenFromUrl = searchParams.get("token");
     if (tokenFromUrl) {
       setInviteCode(tokenFromUrl);
       handleVerifyInvite(tokenFromUrl);
     }
-  }, [searchParams]);
+    // 3. Add handleVerifyInvite to the dependency array
+  }, [searchParams, handleVerifyInvite]);
 
   const handleAcceptInvite = async () => {
     if (!isAuthenticated) {
-      toast.error("Please log in or create an account to accept the invitation.");
-      navigate("/login", { state: { from: "/join-family", inviteToken: inviteCode } });
-      return;
+      toast.error(
+        "Please log in or create an account to accept the invitation."
+      );
+      sessionStorage.setItem('inviteToken', inviteCode);
+      navigate("/login");
+      return; // 4. FIX: Add a return statement to stop the function here
     }
 
     setIsLoading(true);

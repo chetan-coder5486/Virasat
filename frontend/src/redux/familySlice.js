@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { createFamily, getFamilyDetails } from './familyThunks'; // Import from thunks file
+import { createFamily, getFamilyDetails, acceptInvite } from './familyThunks'; // Import from thunks file
 import { loginUser } from './authThunks';      // Import from thunks file
 
 
@@ -45,6 +45,19 @@ const familySlice = createSlice({
                 state.loading = false;
                 state.isFamily = false;
                 state.familyData = null;
+            })
+             // 2. Add cases for the acceptInvite lifecycle
+            .addCase(acceptInvite.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(acceptInvite.fulfilled, (state, action) => {
+                state.loading = false;
+                state.isFamily = true;
+                state.familyData = action.payload; // Store the new family's data
+            })
+            .addCase(acceptInvite.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
             });
     }
 });

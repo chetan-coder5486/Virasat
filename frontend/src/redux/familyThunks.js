@@ -35,4 +35,23 @@ export const getFamilyDetails = createAsyncThunk(
     }
 );
 
+export const acceptInvite = createAsyncThunk(
+    'family/acceptInvite',
+    async ({ token }, { rejectWithValue }) => {
+        try {
+            const response = await axios.post(
+                `${FAMILY_API_ENDPOINT}/accept-invite`,
+                { token },
+                { withCredentials: true }
+            );
+            toast.success(response.data.message);
+            return response.data.family; // Return the family data on success
+        } catch (error) {
+            const message = error.response?.data?.message || 'Failed to accept invite.';
+            toast.error(message);
+            return rejectWithValue(message);
+        }
+    }
+);
+
 
