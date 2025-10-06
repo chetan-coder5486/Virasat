@@ -1,0 +1,251 @@
+/* FamilyTree.css */
+@import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;600&family=Poppins:wght@400;600&display=swap');
+
+body {
+  font-family: 'Lora', serif;
+  background: linear-gradient(to bottom right, #fef2f2, #ffe4e6, #f290b0); /* Light, warm gradient */
+  color: #5c0f2f;
+  min-height: 100vh;
+}
+
+.family-tree-page-container {
+  padding: 40px 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.page-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 3rem;
+  color: #b91c1c;
+  text-align: center;
+  margin-bottom: 10px;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.page-subtitle {
+  font-size: 1.1rem;
+  color: #be185d;
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+/* --- Tree Management Controls --- */
+.tree-controls {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.btn-add-member {
+  background: #ec4899; /* Vibrant pink */
+  color: white;
+  padding: 12px 25px;
+  border-radius: 50px;
+  border: none;
+  font-size: 1rem;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  box-shadow: 0 5px 15px rgba(236, 72, 153, 0.3);
+  transition: background 0.3s ease, transform 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+}
+
+.btn-add-member:hover {
+  background: #db2777;
+  transform: translateY(-2px);
+}
+
+/* --- Main Family Tree Diagram --- */
+.family-tree-diagram {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 60px; /* Space between generations */
+  padding-bottom: 100px; /* Ensure space for last generation */
+  position: relative;
+}
+
+.generation {
+  display: flex;
+  justify-content: center;
+  gap: 80px; /* Space between siblings/spouses */
+  position: relative;
+}
+
+/* --- Person Node Styling --- */
+.person-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  z-index: 10;
+}
+
+.person-node:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.profile-img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #f9a8d4; /* Pink border */
+  margin-bottom: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.person-name {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  color: #9d174d;
+  font-size: 0.95rem;
+}
+
+/* --- Connectors (Simplified for visual hierarchy) --- */
+.gen-connector {
+  width: 2px;
+  height: 60px;
+  background: linear-gradient(to bottom, #f9a8d4, #f472b6); /* Pink gradient */
+  position: absolute; /* positioned dynamically by parent */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+}
+
+.generation-1 + .gen-connector { top: 150px; } /* Position connector below generation 1 */
+.generation-2 + .gen-connector { top: 380px; } /* Position connector below generation 2 */
+
+
+.spouse-line {
+  position: absolute;
+  width: 80px; /* Width between spouses */
+  height: 2px;
+  background: #f472b6;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+}
+
+/* --- Sidebar Styles --- */
+.sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 350px;
+  height: 100%;
+  background: rgba(255, 240, 245, 0.95); /* Soft pink semi-transparent */
+  backdrop-filter: blur(15px);
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.15);
+  padding: 40px 30px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  border-left: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.sidebar-close-btn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: none;
+  border: none;
+  font-size: 2.5rem;
+  color: #b91c1c;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+.sidebar-close-btn:hover { transform: rotate(90deg); }
+
+.sidebar-profile-img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #f9a8d4;
+  margin-bottom: 25px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 2.2rem;
+  color: #9d174d;
+  margin-bottom: 15px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.sidebar-detail {
+  font-size: 1rem;
+  color: #be185d;
+  margin-bottom: 8px;
+}
+
+.btn-view-memories {
+  background: #db2777;
+  color: white;
+  padding: 12px 30px;
+  border-radius: 50px;
+  border: none;
+  font-size: 1rem;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  box-shadow: 0 5px 15px rgba(219, 39, 119, 0.3);
+  transition: background 0.3s ease, transform 0.2s ease;
+  margin-top: 30px;
+}
+
+.btn-view-memories:hover {
+  background: #b91c1c;
+  transform: translateY(-2px);
+}
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 768px) {
+  .page-title { font-size: 2.5rem; }
+  .page-subtitle { font-size: 1rem; }
+  
+  .generation {
+    flex-direction: column;
+    gap: 40px; /* Stack nodes vertically on small screens */
+  }
+
+  .person-node {
+    width: 150px; /* Adjust node size */
+  }
+
+  .profile-img {
+    width: 70px;
+    height: 70px;
+  }
+
+  .spouse-line { /* Hide on mobile for vertical stacking */
+    display: none;
+  }
+
+  .gen-connector {
+    /* Adjust connector positions for vertical stacking */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+  }
+  .generation-1 + .gen-connector { top: 180px; }
+  .generation-2 + .gen-connector { top: 400px; } /* Adjust as needed */
+
+  .sidebar {
+    width: 100%;
+    padding: 20px;
+  }
+}

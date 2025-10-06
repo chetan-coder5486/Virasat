@@ -1,0 +1,212 @@
+/* Gallery.css */
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&display=swap');
+
+body {
+  margin: 0;
+  font-family: 'Lora', serif; /* A more elegant, timeless font */
+  background: linear-gradient(to bottom, #dbb0be, #d67269);
+  overflow-x: hidden;
+}
+
+.timeline-container {
+  position: relative;
+  width: 100%;
+  padding: 80px 0;
+  overflow: hidden;
+}
+
+/* --- The Tree Trunk --- */
+.timeline-trunk {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  
+  /* Adjust width for the SVG */
+  width: 100px; 
+  height: 100%;
+  top: 0;
+
+  /* Set the fill color for the SVG path */
+  color: #6d4c41; 
+  
+  /* Remove the old background and shadow styles */
+  /* background: linear-gradient(...); */
+  /* box-shadow: ...; */
+  /* border-radius: ...; */
+}
+
+/* --- Event Blossoms (Alternating Layout) --- */
+.timeline-events {
+  position: relative;
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 80px; /* Space between events */
+}
+
+.timeline-event {
+  position: relative;
+  width: calc(50% - 60px); /* Card width */
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 8px 25px rgba(185, 28, 28, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+.timeline-event.left {
+  align-self: flex-start;
+}
+
+.timeline-event.right {
+  align-self: flex-end;
+}
+
+/* The connecting twig pseudo-element */
+.timeline-event::before {
+  content: '';
+  position: absolute;
+  top: 35px;
+  width: 50px;
+  height: 2px;
+  background: #c08497;
+  z-index: -1;
+}
+
+.timeline-event.left::before {
+  right: -50px;
+}
+
+.timeline-event.right::before {
+  left: -50px;
+}
+
+/* --- Event Blossom Styling --- */
+.event-icon {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 2rem;
+  background: #fff;
+  border-radius: 50%;
+  width: 70px;
+  height: 70px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  border: 3px solid #f9a8d4;
+  z-index: 10;
+}
+
+.timeline-event.left .event-icon {
+  right: -105px;
+}
+
+.timeline-event.right .event-icon {
+  left: -105px;
+}
+
+/* The glowing aura pseudo-element */
+.event-icon::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: #f472b6;
+  border-radius: 50%;
+  z-index: -1;
+  transition: transform 0.4s ease, opacity 0.4s ease;
+  transform: scale(0.8);
+  opacity: 0;
+  filter: blur(10px);
+}
+
+.timeline-event:hover .event-icon::after {
+  transform: scale(1.2);
+  opacity: 0.5;
+}
+
+.event-content h3 {
+  color: #9d174d;
+  font-weight: 600;
+  margin-bottom: 6px;
+  font-size: 1.1rem;
+}
+
+.event-content p {
+  color: #be185d;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+/* --- Sakura Petal Animation --- */
+.sakura-petal {
+  position: absolute;
+  background: radial-gradient(circle at 30% 30%, #ffc0cb, #ffb6c1);
+  border-radius: 40% 60% 70% 30% / 40% 40% 60% 60%;
+  opacity: 0.8;
+  pointer-events: none;
+  z-index: 20; /* Petals should be on top */
+}
+
+/* --- Interactive Modal --- */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+}
+
+.modal-content {
+  background: #fff0f5;
+  padding: 40px;
+  border-radius: 20px;
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  border: 1px solid #f9a8d4;
+}
+
+.modal-icon {
+  font-size: 3rem;
+  background: #fff;
+  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto 20px auto;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  border: 3px solid #f9a8d4;
+}
+
+.modal-content h2 { color: #9d174d; margin-bottom: 5px; }
+.modal-content h4 { color: #be185d; margin-bottom: 20px; font-style: italic; font-weight: 400; }
+.modal-content p { color: #831843; line-height: 1.6; }
+.modal-content button {
+  margin-top: 25px;
+  padding: 10px 30px;
+  border: none;
+  background: #f472b6;
+  color: white;
+  border-radius: 50px;
+  cursor: pointer;
+  font-family: 'Lora', serif;
+  font-size: 1rem;
+  transition: background 0.3s ease;
+}
+.modal-content button:hover { background: #db2777; }
