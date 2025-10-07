@@ -3,6 +3,7 @@ import { Family } from '../models/family.model.js'; // Assuming you have a Famil
 import jwt from 'jsonwebtoken';
 import transporter from '../config/mailer.js'; // Import the transporter
 import dotenv from 'dotenv';
+import { Memory } from '../models/memory.model.js';
 dotenv.config();
 
 
@@ -280,6 +281,101 @@ export const acceptInvite = async (req, res) => {
     }
 }
 
+//controller for memories
 
+// ... (add this new controller to your family controller file)
 
+export const getMemories = async (req, res) => {
+    try {
+        const userId = req.id;
+        const user = await User.findById(userId);
+        if (!user || !user.family) {
+            return res.status(404).json({ message: "User or family not found." });
+        }
 
+        // 1. Get filter and search parameters from the URL query
+        const { search, type, member, tag } = req.query;
+
+        // 2. Build the base query to only get memories from the user's family
+        let query = { family: user.family };
+
+        // 3. Dynamically add filters to the query if they exist
+        if (type && type !== 'all') {
+            query.type = type;
+        }
+        if (member && member !== 'all') {
+            // This assumes taggedMembers stores member names.
+            // If it stores IDs, you'd need a lookup first.
+            query.taggedMembers = member;
+        }
+        if (tag && tag !== 'all') {
+            query.tags = tag;
+        }
+
+        // 4. Add the search term to the query using a case-insensitive regex
+        if (search) {
+            const searchRegex = new RegExp(search, 'i');
+            query.$or = [
+                { title: { $regex: searchRegex } },
+                { story: { $regex: searchRegex } },
+                { author: { $regex: searchRegex } }
+            ];
+        }
+
+        // 5. Execute the query and sort by newest first
+        const memories = await Memory.find(query).sort({ date: -1 });
+
+        return res.status(200).json({
+            success: true,
+            memories
+        });
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
+//For autocomplete tags
+
+export const getTagSuggestions = async (req, res) => {
+    try {
+        const userId = req.id;
+        const { prefix } = req.query; // Get the user's typed input
+
+        if (!prefix) {
+            return res.status(200).json([]); // Return empty array if no prefix
+        }
+
+        const user = await User.findById(userId);
+        if (!user || !user.family) {
+            return res.status(404).json({ message: "User or family not found." });
+        }
+
+        // Create a case-insensitive regular expression from the user's input
+        const regex = new RegExp(`^${prefix}`, 'i');
+
+        // Use .distinct() to find all unique tags that match the regex
+        // within the user's family
+        const tags = await Memory.distinct('tags', {
+            family: user.family,
+            tags: { $regex: regex }
+        });
+
+        // Also search aiTags and merge the results
+        const aiTags = await Memory.distinct('aiTags', {
+            family: user.family,
+            aiTags: { $regex: regex }
+        });
+        
+        // Combine, get unique results, and limit to 10
+        const combinedResults = [...new Set([...tags, ...aiTags])];
+        const suggestions = combinedResults.slice(0, 10);
+
+        return res.status(200).json(suggestions);
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+};

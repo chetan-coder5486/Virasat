@@ -1,5 +1,5 @@
 import express from "express"
-import { acceptInvite, createFamily, getFamilyDetails, sendInvite} from "../controllers/family.controller.js";
+import { acceptInvite, createFamily, getFamilyDetails, getMemories, getTagSuggestions, sendInvite} from "../controllers/family.controller.js";
 import isAuthenticated from "../middlewares/isAuthenticated.js";
 
 const router = express.Router();
@@ -8,6 +8,8 @@ router.route("/create").post(isAuthenticated,createFamily)
 router.route("/send-invite").post(isAuthenticated,sendInvite)
 router.route("/get-details").get(isAuthenticated, getFamilyDetails)
 router.route("/accept-invite").post(isAuthenticated,acceptInvite)
+router.route("/memories").get(isAuthenticated, getMemories);
+router.route("/tags/autocomplete").get(isAuthenticated, getTagSuggestions);
 
 
 export default router
