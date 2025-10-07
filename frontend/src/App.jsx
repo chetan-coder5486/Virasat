@@ -12,6 +12,7 @@ import JoinFamily from './components/JoinFamily';
 import Spinner from './components/shared/Spinner';
 
 import { getFamilyDetails } from './redux/familyThunks';
+import Memories from './components/Memories';
 
 const appRouter = createBrowserRouter([
   { path: '/', element: <Home /> },
@@ -20,6 +21,7 @@ const appRouter = createBrowserRouter([
   { path: '/dashboard', element: <Dashboard /> },
   { path: '/gallery', element: <Gallery /> },
   { path: '/family', element: <Family /> },
+  { path: '/memories', element: <Memories /> },
   { path: '/join-family', element: <JoinFamily /> }, // Corrected path name
 ]);
 
