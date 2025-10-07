@@ -1,18 +1,10 @@
-<<<<<<< HEAD
 import React from 'react';
 import  { useState, useEffect, useCallback } from "react";
-=======
-import React, { useState, useEffect, useCallback } from "react";
->>>>>>> 39dbe1ea1c50897f39e9aa49b0373cb084aaad8f
 import { motion, AnimatePresence } from "framer-motion";
 import { useSelector, useDispatch } from "react-redux";
 import { Loader2 } from "lucide-react";
 import axios from "axios";
-<<<<<<< HEAD
 import { UploadMemoryModal } from '@/components/UploadMemoryModal';
-=======
-import { toast } from "react-hot-toast";
->>>>>>> 39dbe1ea1c50897f39e9aa49b0373cb084aaad8f
 import { PlusCircle } from "lucide-react";
 import { fetchMemories } from "@/redux/memoryThunks"; // Your Redux thunk
 import { FAMILY_API_ENDPOINT } from "@/utils/constant";
@@ -146,7 +138,6 @@ const FilterBar = ({
 // ====================================================================
 // 3. Memory Card and Modal Components
 // ====================================================================
-<<<<<<< HEAD
 
 const MemoryCard = ({ memory, onCardClick }) => {
   // 1. Check if the memory is still processing
@@ -201,51 +192,6 @@ const MemoryCard = ({ memory, onCardClick }) => {
 };
 
 
-=======
-const MemoryCard = ({ memory, onCardClick }) => (
-  <motion.div
-    layout
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    exit={{ opacity: 0 }}
-    transition={{ duration: 0.3 }}
-    className="bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer h-full flex flex-col"
-    onClick={() => onCardClick(memory)}
-  >
-    <img
-      src={memory.preview}
-      alt={memory.title}
-      className="w-full h-48 object-cover"
-    />
-    <div className="p-4 flex flex-col flex-grow">
-      <h3 className="text-lg font-bold font-serif text-rose-800">
-        {memory.title}
-      </h3>
-      <p className="text-sm text-rose-600">
-        {memory.author} - {new Date(memory.date).toLocaleDateString()}
-      </p>
-      <div className="mt-2 flex flex-wrap gap-1 pt-2 border-t border-rose-100 flex-grow content-start">
-        {memory.tags?.map((tag) => (
-          <span
-            key={tag}
-            className="text-xs bg-rose-100 text-rose-800 px-2 py-1 rounded-full"
-          >
-            {tag}
-          </span>
-        ))}
-        {memory.aiTags?.map((tag) => (
-          <span
-            key={tag}
-            className="text-xs bg-sky-100 text-sky-800 px-2 py-1 rounded-full"
-          >
-            {tag}
-          </span>
-        ))}
-      </div>
-    </div>
-  </motion.div>
-);
->>>>>>> 39dbe1ea1c50897f39e9aa49b0373cb084aaad8f
 
 const MemoryDetailModal = ({ memory, onClose }) => (
   <motion.div
@@ -272,7 +218,6 @@ const MemoryDetailModal = ({ memory, onClose }) => (
         {memory.title}
       </h2>
       <p className="text-md text-rose-600 mb-4">
-<<<<<<< HEAD
         {memory.author.fullName} - {new Date(memory.date).toLocaleDateString()}
       </p>
 
@@ -297,15 +242,6 @@ const MemoryDetailModal = ({ memory, onClose }) => (
       </div>
       {/* -------------------- */}
       
-=======
-        {memory.author} - {new Date(memory.date).toLocaleDateString()}
-      </p>
-      <img
-        src={memory.preview}
-        alt={memory.title}
-        className="w-full max-h-96 object-contain rounded-lg mb-4"
-      />
->>>>>>> 39dbe1ea1c50897f39e9aa49b0373cb084aaad8f
       <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
         {memory.story}
       </p>
@@ -317,7 +253,6 @@ const MemoryDetailModal = ({ memory, onClose }) => (
 // ====================================================================
 // 4. Main Archive Page Component
 // ====================================================================
-<<<<<<< HEAD
 export default function ArchivePage() {
   const dispatch = useDispatch();
   const { items: memories, loading } = useSelector((state) => state.memories);
@@ -325,47 +260,18 @@ export default function ArchivePage() {
   const [filters, setFilters] = useState({ type: "all", member: "all", tag: "all" });
   const [selectedMemory, setSelectedMemory] = useState(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-=======
-export default function Memories() {
-  const dispatch = useDispatch();
-  const { items: memories, loading } = useSelector((state) => state.memories);
-
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filters, setFilters] = useState({
-    type: "all",
-    member: "all",
-    tag: "all",
-  });
-  const [selectedMemory, setSelectedMemory] = useState(null);
->>>>>>> 39dbe1ea1c50897f39e9aa49b0373cb084aaad8f
 
   useEffect(() => {
     const handler = setTimeout(() => {
       dispatch(fetchMemories({ searchTerm, filters }));
-<<<<<<< HEAD
     }, 500);
     return () => clearTimeout(handler);
   }, [searchTerm, filters, dispatch]);
 
-=======
-    }, 500); // Debounce API calls by 500ms
-    return () => clearTimeout(handler);
-  }, [searchTerm, filters, dispatch]);
-
-  const handleTagSelect = (tag) => {
-    setFilters((prev) => ({ ...prev, tag }));
-  };
-   const handleUploadClick = () => {
-    // This would open a modal or navigate to a new page for uploading memories
-    alert("Navigating to upload memory page...");
-  };
-  
->>>>>>> 39dbe1ea1c50897f39e9aa49b0373cb084aaad8f
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-rose-100 via-pink-50 to-amber-50">
       <Navbar />
       <main className="container mx-auto p-4 sm:p-6 lg:p-8">
-<<<<<<< HEAD
         {/* FIX 1: Add a persistent "Add Memory" button */}
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-4xl font-bold font-serif text-rose-800">The Archive</h1>
@@ -380,53 +286,28 @@ export default function Memories() {
           </motion.button>
         </div>
 
-=======
->>>>>>> 39dbe1ea1c50897f39e9aa49b0373cb084aaad8f
         <FilterBar
           searchTerm={searchTerm}
           onSearchChange={(e) => setSearchTerm(e.target.value)}
           filters={filters}
-<<<<<<< HEAD
           onFilterChange={(e) => setFilters((prev) => ({ ...prev, [e.target.name]: e.target.value }))}
           onTagSelect={(tag) => setFilters((prev) => ({ ...prev, tag }))}
         />
 
-=======
-          onFilterChange={(e) =>
-            setFilters((prev) => ({ ...prev, [e.target.name]: e.target.value }))
-          }
-          onTagSelect={handleTagSelect}
-        />
->>>>>>> 39dbe1ea1c50897f39e9aa49b0373cb084aaad8f
         {loading && memories.length === 0 ? (
           <div className="flex justify-center items-center mt-16">
             <Loader2 className="h-12 w-12 text-rose-500 animate-spin" />
           </div>
         ) : (
           <>
-<<<<<<< HEAD
             <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               <AnimatePresence>
                 {memories.map((memory) => (
                   <MemoryCard key={memory._id} memory={memory} onCardClick={setSelectedMemory} />
-=======
-            <motion.div
-              layout
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-            >
-              <AnimatePresence>
-                {memories.map((memory) => (
-                  <MemoryCard
-                    key={memory._id}
-                    memory={memory}
-                    onCardClick={setSelectedMemory}
-                  />
->>>>>>> 39dbe1ea1c50897f39e9aa49b0373cb084aaad8f
                 ))}
               </AnimatePresence>
             </motion.div>
 
-<<<<<<< HEAD
             {!loading && memories.length === 0 && (
               <div className="text-center mt-16">
                 <h3 className="text-2xl font-semibold text-rose-800">Your Archive is Empty</h3>
@@ -437,24 +318,6 @@ export default function Memories() {
                 <motion.button
                   onClick={() => setIsUploadModalOpen(true)}
                   className="inline-flex items-center gap-2 rounded-xl bg-rose-600 px-6 py-4 text-lg font-medium text-white shadow-lg"
-=======
-            {/* Ask user to upload a memory if non exist */}
-
-            {!loading && memories.length === 0 && (
-              <div className="text-center mt-16">
-                <h3 className="text-2xl font-semibold text-rose-800">
-                  Your Archive is Empty
-                </h3>
-                <p className="text-rose-600 mt-2 mb-6">
-                  Start preserving your family's history by adding your first
-                  memory.
-                </p>
-                <motion.button
-                  onClick={handleUploadClick}
-                  className="inline-flex items-center gap-2 rounded-xl bg-rose-600 px-6 py-4 text-lg font-medium text-white shadow-lg transition-colors duration-300 hover:bg-rose-700"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.98 }}
->>>>>>> 39dbe1ea1c50897f39e9aa49b0373cb084aaad8f
                 >
                   <PlusCircle />
                   Upload a Memory
@@ -465,22 +328,12 @@ export default function Memories() {
         )}
       </main>
 
-<<<<<<< HEAD
       {/* FIX 2: Move modal presence checks to the top level */}
       <AnimatePresence>
         {isUploadModalOpen && <UploadMemoryModal onClose={() => setIsUploadModalOpen(false)} />}
       </AnimatePresence>
       <AnimatePresence>
         {selectedMemory && <MemoryDetailModal memory={selectedMemory} onClose={() => setSelectedMemory(null)} />}
-=======
-      <AnimatePresence>
-        {selectedMemory && (
-          <MemoryDetailModal
-            memory={selectedMemory}
-            onClose={() => setSelectedMemory(null)}
-          />
-        )}
->>>>>>> 39dbe1ea1c50897f39e9aa49b0373cb084aaad8f
       </AnimatePresence>
     </div>
   );
