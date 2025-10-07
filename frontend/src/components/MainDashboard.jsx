@@ -40,10 +40,7 @@ const Dashboard = () => {
               Welcome back, {user?.name || 'Friend'}!
             </h1>
             <p className="text-rose-700">Here's what's happening in your family's haven.</p>
-          </div>
-          <button className="flex items-center gap-2 rounded-xl bg-rose-600 px-5 py-3 text-lg font-medium text-white shadow-md transition-colors duration-300 hover:bg-rose-700">
-            <span className="text-2xl font-light">+</span> Add a Memory
-          </button>
+          </div>      
         </header>
 
         {/* Dashboard Grid */}
