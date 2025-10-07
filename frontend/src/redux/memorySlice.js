@@ -1,5 +1,9 @@
 import { createSlice } from '@reduxjs/toolkit';
+<<<<<<< HEAD
 import { createMemory, fetchMemories } from './memoryThunks';
+=======
+import { fetchMemories } from './memoryThunks';
+>>>>>>> 39dbe1ea1c50897f39e9aa49b0373cb084aaad8f
 
 const memorySlice = createSlice({
     name: 'memories',
@@ -21,6 +25,7 @@ const memorySlice = createSlice({
             .addCase(fetchMemories.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
+<<<<<<< HEAD
             })
             .addCase(createMemory.pending, (state) => {
                 state.loading = true;
@@ -33,6 +38,8 @@ const memorySlice = createSlice({
             .addCase(createMemory.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
+=======
+>>>>>>> 39dbe1ea1c50897f39e9aa49b0373cb084aaad8f
             });
     }
 });

@@ -1,7 +1,10 @@
 import axios from 'axios';
 import { FAMILY_API_ENDPOINT } from '@/utils/constant';
 import { createAsyncThunk } from '@reduxjs/toolkit';
+<<<<<<< HEAD
 import { toast } from 'react-hot-toast';
+======
+>>>>>>> 39dbe1ea1c50897f39e9aa49b0373cb084aaad8f
 
 export const fetchMemories = createAsyncThunk(
     'memories/fetch',
@@ -19,6 +22,7 @@ export const fetchMemories = createAsyncThunk(
             return rejectWithValue(error.response.data.message);
         }
     }
+<<<<<<< HEAD
 );
 
 
@@ -41,4 +45,6 @@ export const createMemory = createAsyncThunk(
             return rejectWithValue(message);
         }
     }
+=======
+>>>>>>> 39dbe1ea1c50897f39e9aa49b0373cb084aaad8f
 );
