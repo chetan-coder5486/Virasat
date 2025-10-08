@@ -44,6 +44,11 @@ const memorySchema = new mongoose.Schema({
     type: String,
     enum: ['processing', 'completed', 'failed'],
     default: 'processing'
+  },
+  circleId:{
+    type: [mongoose.Schema.Types.ObjectId],
+    ref:"Memory",
+    default:[]
   }
 },{timestamps:true});
 

@@ -8,62 +8,63 @@ dotenv.config();
 
 
 // This should be named createFamily to be more descriptive
+
 export const createFamily = async (req, res) => {
     try {
-        // 1. Get the user ID from your authentication middleware.
-        // This is the secure source of truth for who the user is.
+        // 1. Get logged in user ID from middleware (secure)
         const chroniclerId = req.id;
-
-        // 2. Get the family details from the request body.
-        // Notice we do NOT get the chronicler from the body.
         const { familyName, description } = req.body;
 
-        // 3. Validate the inputs FIRST.
+        // 2. Validate input
         if (!familyName || !chroniclerId) {
             return res.status(400).json({
-                message: "Family name is required and user must be authenticated.",
-                success: false
+                success: false,
+                message: "Family name is required and user must be authenticated."
             });
         }
 
-        // 4. Create the family using the secure chroniclerId.
-        const family = await Family.create({
+        // 3. Create new family document
+        let family = await Family.create({
             familyName,
             description,
             chronicler: chroniclerId,
-            members: [chroniclerId] // Add the chronicler as the first member
+            members: [chroniclerId]
         });
 
-        await family.save();
-
-        // 5. Update the user's document to link them to the new family.
+        // 4. Update user to link to family and set role
         await User.findByIdAndUpdate(chroniclerId, {
             family: family._id,
             role: 'Chronicler'
         });
 
-        // 6. Send the success response.
-        return res.status(201).json({ // Use 201 for resource creation
-            message: "Family creation successful",
+        // 5. Populate members & chronicler before sending back response
+        family = await Family.findById(family._id)
+            .populate('members', 'fullName email role')
+            .populate('chronicler', 'fullName email role');
+
+        // 6. Send response
+        return res.status(201).json({
             success: true,
+            message: "Family created successfully.",
             family
         });
 
     } catch (error) {
-        console.log(error);
-        // Handle potential duplicate familyName error
+        console.error("Error in createFamily:", error);
+
         if (error.code === 11000) {
-            return res.status(409).json({ // 409 Conflict
-                message: "A family with this name already exists.",
-                success: false
+            return res.status(409).json({
+                success: false,
+                message: "A family with this name already exists."
             });
         }
+
         return res.status(500).json({
-            message: "Internal Server Error",
-            success: false
+            success: false,
+            message: "Internal Server Error"
         });
     }
-}
+};
 
 export const sendInvite = async (req, res) => {
     try {
@@ -130,48 +131,56 @@ export const sendInvite = async (req, res) => {
 
 export const getFamilyDetails = async (req, res) => {
     try {
-        // 1. Get the logged-in user's ID from your auth middleware.
+        // 1. Get the logged-in user's ID
         const userId = req.id;
 
-        // 2. Find the user in the database to get their family ID.
+        // 2. Find the user and check if they exist
         const user = await User.findById(userId);
         if (!user) {
-            return res.status(404).json({ message: "User not found", success: false });
-        }
-
-        // 3. Check if the user belongs to a family.
-        if (!user.family) {
             return res.status(404).json({
-                message: "You do not belong to a family yet.",
-                success: false
+                success: false,
+                message: "User not found"
             });
         }
 
-        // 4. Use the user's family ID to find the actual family document and populate its members.
-        const family = await Family.findById(user.family).populate('members', 'fullName email role profile');
+        // 3. Check if the user is linked to any family
+        if (!user.family) {
+            return res.status(200).json({
+                success: true,
+                message: "User does not belong to any family.",
+                family: null
+            });
+        }
 
-        // This check is good practice in case the family was deleted but the user link remains.
+        // 4. Fetch and populate family details (members + chronicler)
+        const family = await Family.findById(user.family)
+            .populate('members', 'fullName email role')
+            .populate('chronicler', 'fullName email role');
+
+        // 5. Handle deleted/missing family document
         if (!family) {
             return res.status(404).json({
-                message: "Family not found",
-                success: false
+                success: false,
+                message: "Family not found or may have been deleted."
             });
         }
 
+        // 6. Return populated family details
         return res.status(200).json({
-            message: "Family details fetched successfully",
             success: true,
+            message: "Family details fetched successfully.",
             family
         });
 
     } catch (error) {
-        console.log(error);
+        console.error("Error in getFamilyDetails:", error);
         return res.status(500).json({
-            message: "Internal Server Error",
-            success: false
+            success: false,
+            message: "Internal Server Error"
         });
     }
-}
+};
+
 
 export const updateFamily = async (req, res) => {
     try {
@@ -224,63 +233,99 @@ export const deleteFamily = async (req, res) => {
 
 export const acceptInvite = async (req, res) => {
     try {
-        const userId = req.id; // comes from auth middleware
+        const userId = req.id; // From auth middleware
         const { token } = req.body;
 
+        // 1. Validate token existence
         if (!token) {
-            return res.status(400).json({ message: "Token is required", success: false });
+            return res.status(400).json({
+                success: false,
+                message: "Token is required."
+            });
         }
 
+        // 2. Verify and decode the invitation token
         let decoded;
         try {
             decoded = jwt.verify(token, process.env.JWT_INVITE_KEY);
         } catch (err) {
-            return res.status(400).json({ message: "Invalid or expired token.", success: false });
+            return res.status(400).json({
+                success: false,
+                message: "Invalid or expired invitation link."
+            });
         }
 
         const { email, familyId, role } = decoded;
         console.log("Decoded invite token:", decoded);
 
-        // Find user by ID and check email matches
+        // 3. Find the user and check if the email matches
         const user = await User.findById(userId);
         if (!user) {
-            return res.status(404).json({ message: "User not found.", success: false });
-        }
-        if (user.email !== email) {
-            return res.status(403).json({ message: "Invitation not intended for this user.", success: false });
+            return res.status(404).json({
+                success: false,
+                message: "User not found."
+            });
         }
 
-        // Find family and check membership
+        if (user.email !== email) {
+            return res.status(403).json({
+                success: false,
+                message: "Invitation not intended for this user. Please log out and try again."
+            });
+        }
+
+        // 4. Find the family
         const family = await Family.findById(familyId);
         if (!family) {
-            return res.status(404).json({ message: "Family not found", success: false });
-        }
-        if (family.members.includes(userId)) {
-            return res.status(400).json({ message: "You are already a member of this family.", success: false });
+            return res.status(404).json({
+                success: false,
+                message: "Family not found."
+            });
         }
 
-        // Add user to family members
+        // 5. Check if already a member
+        if (family.members.includes(userId)) {
+            // ✅ Populate before sending back to frontend even in this case
+            const populatedFamily = await Family.findById(familyId)
+                .populate('members', 'fullName email role')
+                .populate('chronicler', 'fullName email role');
+
+            return res.status(200).json({
+                success: true,
+                message: "You are already a member of this family.",
+                family: populatedFamily
+            });
+        }
+
+        // 6. Add user to family members
         family.members.push(userId);
         await family.save();
 
-        // Link user to family and set role
+        // 7. Link user to family and assign role
         user.family = family._id;
         user.role = role || 'Viewer';
         await user.save();
 
+        // 8. Populate full family data to send to frontend
+        const updatedFamily = await Family.findById(familyId)
+            .populate('members', 'fullName email role')
+            .populate('chronicler', 'fullName email role');
+
+        // 9. Respond with structured JSON
         return res.status(200).json({
-            message: `Successfully joined the ${family.familyName} family!`,
             success: true,
-            family
+            message: `Successfully joined the ${updatedFamily.familyName} family!`,
+            family: updatedFamily
         });
+
     } catch (error) {
-        console.log(error);
+        console.error("Error in acceptInvite:", error);
         return res.status(500).json({
-            message: "Internal Server Error",
-            success: false
+            success: false,
+            message: "Internal Server Error"
         });
     }
-}
+};
 
 //controller for memories
 

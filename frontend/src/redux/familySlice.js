@@ -14,16 +14,16 @@ const familySlice = createSlice({
     reducers: {},
     extraReducers: (builder) => {
         builder
-            .addCase(createFamily.fulfilled, (state, action) => {
-                state.isFamily = true;
-                state.familyData = action.payload;
-                state.loading = false;
-            })
-            // This part will now work correctly
-            .addCase(loginUser.fulfilled, (state, action) => {
-                state.isFamily = action.payload.isFamily;
-                state.familyData = action.payload.family || null; // Assume login payload might have family data
-            })
+        .addCase(loginUser.fulfilled, (state, action) => {
+            state.isFamily = action.payload.isFamily;
+            state.familyData = action.payload.family || null; // Assume login payload might have family data
+        })
+        .addCase(createFamily.fulfilled, (state, action) => {
+            state.isFamily = true;
+            state.familyData = action.payload;
+            state.loading = false;
+        })
+        // This part will now work correctly
             // Add pending/rejected cases for robustness
             .addCase(createFamily.pending, (state) => {
                 state.loading = true;
@@ -38,7 +38,12 @@ const familySlice = createSlice({
             })
             .addCase(getFamilyDetails.fulfilled, (state, action) => {
                 state.loading = false;
-                state.familyData = action.payload; // <-- PERSISTENCE!
+                const newData = action.payload;
+                const oldData = state.familyData;
+                // Update only if the family data has changed
+                if (!oldData || oldData._id !== newData._id) {
+                    state.familyData = newData;
+                }
                 state.isFamily = true; // Ensure this is also set
             })
             .addCase(getFamilyDetails.rejected, (state) => {
@@ -46,14 +51,14 @@ const familySlice = createSlice({
                 state.isFamily = false;
                 state.familyData = null;
             })
-             // 2. Add cases for the acceptInvite lifecycle
+            // 2. Add cases for the acceptInvite lifecycle
             .addCase(acceptInvite.pending, (state) => {
                 state.loading = true;
             })
             .addCase(acceptInvite.fulfilled, (state, action) => {
                 state.loading = false;
                 state.isFamily = true;
-                state.familyData = action.payload; // Store the new family's data
+                state.familyData = action.payload.family; // Store the new family's data
             })
             .addCase(acceptInvite.rejected, (state, action) => {
                 state.loading = false;

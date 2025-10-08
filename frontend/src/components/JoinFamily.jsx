@@ -85,7 +85,7 @@ export default function JoinFamily() {
       toast.error(
         "Please log in or create an account to accept the invitation."
       );
-      sessionStorage.setItem('inviteToken', inviteCode);
+      sessionStorage.setItem("inviteToken", inviteCode);
       navigate("/login");
       return; // 4. FIX: Add a return statement to stop the function here
     }
@@ -108,6 +108,7 @@ export default function JoinFamily() {
       toast.error(message);
     } finally {
       setIsLoading(false);
+      sessionStorage.removeItem("inviteToken"); // Clear the token after use
     }
   };
 

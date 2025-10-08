@@ -29,6 +29,11 @@ const userSchema = new mongoose.Schema({
         ref:"Family",
         default:null
     },
+    circleId:{
+        type:[mongoose.Schema.Types.ObjectId],
+        ref:"Circle",
+        default:[]
+    },
     profile:{
         bio:{type: String},
         family:{type:mongoose.Schema.Types.ObjectId, ref:"Family"},
