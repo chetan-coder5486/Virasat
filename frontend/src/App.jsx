@@ -15,17 +15,23 @@ import { getFamilyDetails } from './redux/familyThunks';
 import Memories from './components/Memories';
 import Circles from './components/Circles';
 import { getUserCircles } from './redux/circleThunks';
+import ProtectedRoute from './components/ProtectedRoutes';
 
 const appRouter = createBrowserRouter([
   { path: '/', element: <Home /> },
   { path: '/login', element: <Login /> },
   { path: '/signup', element: <Signup /> },
-  { path: '/dashboard', element: <Dashboard /> },
-  { path: '/gallery', element: <Gallery /> },
-  { path: '/family', element: <Family /> },
-  { path: '/memories', element: <Memories /> },
   { path: '/join-family', element: <JoinFamily /> }, // Corrected path name
-  { path: '/circles', element: <Circles /> }, // Corrected path name
+  {
+    element: <ProtectedRoute />, // Wrap protected routes
+    children: [
+    { path: '/dashboard', element: <Dashboard /> },
+    { path: '/gallery', element: <Gallery /> },
+    { path: '/family', element: <Family /> },
+    { path: '/memories', element: <Memories /> },
+    { path: '/circles', element: <Circles /> }, // Corrected path name
+    ]
+  }
 ]);
 
 const App = () => {

@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { createCircle } from './circleThunks'; // Import the thunk
+import { createCircle, getUserCircles } from './circleThunks'; // Import the thunk
 
 const circlesSlice = createSlice({
     name: 'circles',

@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 
-export const UploadMemoryModal = ({ onClose }) => {
+export const UploadMemoryModal = ({ onClose, circleId = null }) => {
   const dispatch = useDispatch();
   const { loading } = useSelector((state) => state.memories);
 
@@ -48,6 +48,9 @@ export const UploadMemoryModal = ({ onClose }) => {
     // 🔹 Append all selected files
     formData.memoryFiles.forEach((file) => {
       data.append('memoryFiles', file);
+        if (circleId) {
+            data.append('circleId', circleId);
+        }
     });
 
     try {
