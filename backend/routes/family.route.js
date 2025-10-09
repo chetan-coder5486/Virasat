@@ -12,7 +12,7 @@ router.route("/accept-invite").post(isAuthenticated, acceptInvite)
 router.route("/memories").get(isAuthenticated, getMemories);
 router.route("/tags/autocomplete").get(isAuthenticated, getTagSuggestions);
 // 'memoryFile' is the field name the frontend will use for the file
-router.route("/memories/create").post(isAuthenticated, upload.single('memoryFile'), createMemory);
+router.route("/memories/create").post(isAuthenticated, upload.array('memoryFiles',10), createMemory);
 
 
 export default router

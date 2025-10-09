@@ -354,7 +354,6 @@ export const getMemories = async (req, res) => {
         }
         if (member && member !== 'all') {
             // This assumes taggedMembers stores member names.
-            // If it stores IDs, you'd need a lookup first.
             query.taggedMembers = member;
         }
         if (tag && tag !== 'all') {
@@ -367,12 +366,13 @@ export const getMemories = async (req, res) => {
             query.$or = [
                 { title: { $regex: searchRegex } },
                 { story: { $regex: searchRegex } },
-                { author: { $regex: searchRegex } }
             ];
         }
 
-        // 5. Execute the query and sort by newest first
-        const memories = await Memory.find(query).sort({ date: -1 });
+        // 5. Execute the query, populate author, and sort by newest first
+        const memories = await Memory.find(query)
+            .populate("author", "fullName")
+            .sort({ date: -1 });
 
         return res.status(200).json({
             success: true,
