@@ -14,6 +14,7 @@ import Spinner from './components/shared/Spinner';
 import { getFamilyDetails } from './redux/familyThunks';
 import Memories from './components/Memories';
 import Circles from './components/Circles';
+import { getUserCircles } from './redux/circleThunks';
 
 const appRouter = createBrowserRouter([
   { path: '/', element: <Home /> },
@@ -38,6 +39,7 @@ const App = () => {
     if (isAuthenticated) {
       console.log('DISPATCH GET FAMILY from App')
       dispatch(getFamilyDetails());
+      dispatch(getUserCircles());
     }
   }, [isAuthenticated, dispatch]);
 

@@ -10,10 +10,11 @@ const circleSchema = new mongoose.Schema({
         ref: "User",
         required:true
     },
-    memberId:{
-        type: [mongoose.Schema.Types.ObjectId],
+    memberId:[{
+        type: mongoose.Schema.Types.ObjectId,
         ref:"User",
-    },
+        default:[]
+    }],
     memory:{
         type: [mongoose.Schema.Types.ObjectId],
         ref:"Memory",

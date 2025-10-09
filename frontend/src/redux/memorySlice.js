@@ -5,7 +5,7 @@ const memorySlice = createSlice({
     name: 'memories',
     initialState: {
         items: [],
-        loading: true,
+        loading: false,
         error: null,
     },
     reducers: {},

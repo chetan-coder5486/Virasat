@@ -22,3 +22,21 @@ export const createCircle = createAsyncThunk(
         }
     }
 );
+
+export const getUserCircles = createAsyncThunk(
+    'family/getUserCircles',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await axios.get(
+                `${CIRCLE_API_ENDPOINT}/`,
+                { withCredentials: true }
+            );
+            return response.data.circles; // Return the list of circles
+        }
+        catch (error) {
+            const message = error.response?.data?.message || 'Failed to fetch circles.';
+            toast.error(message);
+            return rejectWithValue(message);
+        }
+    }
+);

@@ -3,6 +3,7 @@ import { createFamily, getFamilyDetails, acceptInvite } from './familyThunks'; /
 import { loginUser } from './authThunks';      // Import from thunks file
 
 
+
 const familySlice = createSlice({
     name: 'family',
     initialState: {
@@ -14,16 +15,20 @@ const familySlice = createSlice({
     reducers: {},
     extraReducers: (builder) => {
         builder
-        .addCase(loginUser.fulfilled, (state, action) => {
-            state.isFamily = action.payload.isFamily;
-            state.familyData = action.payload.family || null; // Assume login payload might have family data
-        })
-        .addCase(createFamily.fulfilled, (state, action) => {
-            state.isFamily = true;
-            state.familyData = action.payload;
-            state.loading = false;
-        })
-        // This part will now work correctly
+
+            // 1. Add cases for the createFamily lifecycle
+            .addCase(loginUser.fulfilled, (state, action) => {
+                const { family } = action.payload;
+                state.isFamily = action.payload.isFamily || false;
+                state.familyData = action.payload.family || null;
+            })
+
+            .addCase(createFamily.fulfilled, (state, action) => {
+                state.isFamily = true;
+                state.familyData = action.payload;
+                state.loading = false;
+            })
+            // This part will now work correctly
             // Add pending/rejected cases for robustness
             .addCase(createFamily.pending, (state) => {
                 state.loading = true;
@@ -39,13 +44,15 @@ const familySlice = createSlice({
             .addCase(getFamilyDetails.fulfilled, (state, action) => {
                 state.loading = false;
                 const newData = action.payload;
-                const oldData = state.familyData;
-                // Update only if the family data has changed
-                if (!oldData || oldData._id !== newData._id) {
+                if (newData) {
                     state.familyData = newData;
+                    state.isFamily = true;
+                } else {
+                    state.familyData = null;
+                    state.isFamily = false;
                 }
-                state.isFamily = true; // Ensure this is also set
             })
+
             .addCase(getFamilyDetails.rejected, (state) => {
                 state.loading = false;
                 state.isFamily = false;

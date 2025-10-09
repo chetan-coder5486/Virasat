@@ -4,7 +4,6 @@ import Navbar from "./shared/Navbar";
 import { createCircle } from "@/redux/circleThunks";
 import { useNavigate } from "react-router";
 
-
 // --- (Icons and getFormattedDate function remain the same) ---
 const ClockIcon = () => <span className="text-rose-500">🕒</span>;
 const LightbulbIcon = () => <span className="text-amber-500">💡</span>;
@@ -34,6 +33,7 @@ const Dashboard = () => {
   const [isCircleModalOpen, setIsCircleModalOpen] = useState(false);
   const [circleName, setCircleName] = useState("");
   const [selectedMembers, setSelectedMembers] = useState([]);
+  const { loading: circleLoading } = useSelector((state) => state.circle);
 
   // --- HANDLER FUNCTIONS ---
   const handleOpenCircleModal = () => setIsCircleModalOpen(true);
@@ -56,13 +56,21 @@ const Dashboard = () => {
   const handleCreateCircle = (e) => {
     e.preventDefault();
     // In a real app, you would dispatch an action or call an API here
-    if (!circleName || selectedMembers.length === 0) {
+    if (!circleName.trim() || selectedMembers.length === 0) {
       alert("Please provide a circle name and select at least one member.");
       return;
     }
 
-    dispatch(createCircle({ circleName, members: selectedMembers }));
-    navigate("/circles");
+    dispatch(createCircle({ circleName, members: selectedMembers }))
+      .unwrap()
+      .then(() => {
+        navigate("/circles");
+        handleCloseCircleModal();
+      })
+      .catch((err) => {
+        console.error("Failed to create circle:", err);
+        alert("Failed to create circle. Try again!");
+      });
 
     console.log("Creating Circle:", {
       circleName: circleName,
@@ -213,6 +221,10 @@ const Dashboard = () => {
                   <label className="block text-sm font-semibold text-rose-900">
                     Add Members
                   </label>
+                  <p className="text-sm text-rose-700 mb-2">
+                    {selectedMembers.length} member
+                    {selectedMembers.length !== 1 ? "s" : ""} selected
+                  </p>
                   <div className="mt-2 max-h-48 space-y-2 overflow-y-auto rounded-lg border border-rose-200 p-2">
                     {isLoading && (
                       <p className="p-2 text-rose-700">Loading members...</p>
@@ -249,9 +261,15 @@ const Dashboard = () => {
                 </button>
                 <button
                   type="submit"
-                  className="rounded-lg bg-rose-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-rose-700"
+                  disabled={circleLoading}
+                  className={`rounded-lg px-4 py-2 text-sm font-medium text-white shadow-sm transition 
+  ${
+    circleLoading
+      ? "bg-gray-400 cursor-not-allowed"
+      : "bg-rose-600 hover:bg-rose-700"
+  }`}
                 >
-                  Create Circle
+                  {circleLoading ? "Creating..." : "Create Circle"}
                 </button>
               </div>
             </form>

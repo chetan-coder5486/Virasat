@@ -22,8 +22,22 @@ const circlesSlice = createSlice({
                 state.loading = false;
                 // Add the new circle to the beginning of the items array
                 state.items.unshift(action.payload);
+                console.log("Circle created and added to state:", action.payload);
             })
             .addCase(createCircle.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+            .addCase('family/getUserCircles/pending', (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase('family/getUserCircles/fulfilled', (state, action) => {
+                state.loading = false;
+                state.items = action.payload; // Replace items with fetched circles
+                console.log("Fetched user circles:", action.payload);
+            })
+            .addCase('family/getUserCircles/rejected', (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             });

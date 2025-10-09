@@ -72,7 +72,12 @@ export const login = async (req, res) => {
         const token = jwt.sign(tokenData, process.env.JWT_AUTH_KEY, { expiresIn: '1d' });
 
         // FIX: This is the crucial step for persistence. Check if the user has a family.
-        const isFamily = !!user.family; // Converts ObjectId to true, or null/undefined to false
+        const loggedUser = await User.findById(user._id).populate('family');
+        const isFamily = loggedUser.family && loggedUser.family.toString().trim() !== "" ? true : false;
+
+        console.log("User family field:", loggedUser.family);
+        console.log("Is family calculated as:", isFamily);
+
 
         // IMPROVEMENT: Create a safe user object to return, excluding the password.
         const userResponse = {
@@ -91,6 +96,7 @@ export const login = async (req, res) => {
                 user: userResponse,
                 success: true,
                 isFamily: isFamily, // FIX: Send the isFamily status to the frontend
+                family: loggedUser.family || null,   // ✅ Add this line
             });
     } catch (error) {
         console.log(error);
