@@ -140,7 +140,6 @@ const FilterBar = ({
 // ====================================================================
 
 const MemoryCard = ({ memory, onCardClick }) => {
-  // 1. Check if the memory is still processing
   const isProcessing = memory.status === 'processing';
 
   return (
@@ -150,20 +149,38 @@ const MemoryCard = ({ memory, onCardClick }) => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      // 2. Add conditional classes and onClick handler
       className={`bg-white rounded-lg shadow-lg overflow-hidden h-full flex flex-col ${
         isProcessing ? 'cursor-not-allowed filter grayscale' : 'cursor-pointer'
       }`}
       onClick={() => !isProcessing && onCardClick(memory)}
     >
-      <div className="relative w-full h-48">
-        {/* 3. Show a placeholder or the actual media URL */}
-        <img
-          src={isProcessing ? 'https://placehold.co/600x400/fecdd3/b91c1c?text=Processing...' : memory.mediaUrl}
-          alt={memory.title}
-          className="w-full h-full object-cover"
-        />
-        {/* 4. Show a spinner overlay if processing */}
+      <div className="relative w-full h-48 overflow-hidden">
+        {isProcessing ? (
+          <img
+            src="https://placehold.co/600x400/fecdd3/b91c1c?text=Processing..."
+            alt="Processing"
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          memory.mediaURLs?.[0] && (
+            memory.mediaURLs[0].type === 'video' ? (
+              <video
+                src={memory.mediaURLs[0].url}
+                className="w-full h-full object-cover"
+                muted
+                loop
+                autoPlay
+              />
+            ) : (
+              <img
+                src={memory.mediaURLs[0].url}
+                alt={memory.title}
+                className="w-full h-full object-cover"
+              />
+            )
+          )
+        )}
+
         {isProcessing && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/50">
             <Loader2 className="h-8 w-8 text-white animate-spin" />
@@ -172,11 +189,8 @@ const MemoryCard = ({ memory, onCardClick }) => {
       </div>
 
       <div className="p-4 flex flex-col flex-grow">
-        <h3 className="text-lg font-bold font-serif text-rose-800">
-          {memory.title}
-        </h3>
+        <h3 className="text-lg font-bold font-serif text-rose-800">{memory.title}</h3>
         <p className="text-sm text-rose-600">
-          {/* Use optional chaining in case author is not yet populated */}
           {memory.author?.fullName || '...'} - {new Date(memory.date).toLocaleDateString()}
         </p>
         <div className="mt-2 flex flex-wrap gap-1 pt-2 border-t border-rose-100 flex-grow content-start">
@@ -190,6 +204,7 @@ const MemoryCard = ({ memory, onCardClick }) => {
     </motion.div>
   );
 };
+
 
 
 
@@ -214,41 +229,37 @@ const MemoryDetailModal = ({ memory, onClose }) => (
       >
         &times;
       </button>
-      <h2 className="text-3xl font-bold font-serif text-rose-800 mb-2">
-        {memory.title}
-      </h2>
+
+      <h2 className="text-3xl font-bold font-serif text-rose-800 mb-2">{memory.title}</h2>
       <p className="text-md text-rose-600 mb-4">
         {memory.author.fullName} - {new Date(memory.date).toLocaleDateString()}
       </p>
 
-      {/* --- THIS IS THE FIX --- */}
-      <div className="w-full max-h-96 flex justify-center items-center bg-gray-100 rounded-lg mb-4">
-        {memory.type === 'video' ? (
-          <video
-            src={memory.mediaUrl}
-            controls // Show video controls (play, pause, volume)
-            autoPlay // Optional: start playing automatically
-            className="max-w-full max-h-96 rounded-lg"
-          >
-            Your browser does not support the video tag.
-          </video>
-        ) : (
-          <img
-            src={memory.mediaUrl}
-            alt={memory.title}
-            className="max-w-full max-h-96 object-contain rounded-lg"
-          />
-        )}
+      <div className="w-full max-h-96 flex flex-col gap-2 mb-4 overflow-y-auto">
+        {memory.mediaURLs?.map((media, idx) => (
+          <div key={idx} className="w-full flex justify-center items-center bg-gray-100 rounded-lg">
+            {media.type === 'video' ? (
+              <video
+                src={media.url}
+                controls
+                className="max-w-full max-h-96 rounded-lg"
+              />
+            ) : (
+              <img
+                src={media.url}
+                alt={`${memory.title}-${idx}`}
+                className="max-w-full max-h-96 object-contain rounded-lg"
+              />
+            )}
+          </div>
+        ))}
       </div>
-      {/* -------------------- */}
-      
-      <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-        {memory.story}
-      </p>
-      {/* Comments section would go here */}
+
+      <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{memory.story}</p>
     </motion.div>
   </motion.div>
 );
+
 
 // ====================================================================
 // 4. Main Archive Page Component

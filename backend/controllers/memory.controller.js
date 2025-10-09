@@ -19,16 +19,19 @@ const uploadToCloudinary = (file, folder) => {
 
 // 🔹 Create memory (with "processing" status but no retry logic)
 export const createMemory = async (req, res) => {
+    console.log("BODY:", req.body);
+    console.log("FILES:", req.files);
+    console.log("USER ID:", req.id);
     let newMemory;
 
     try {
         const { title, story, date, tags } = req.body;
-        const file = req.file;
+        const files = req.files;
         const userId = req.id;
 
-        if (!title || !date || !file) {
+        if (!title || !date || files.length === 0) {
             return res.status(400).json({
-                message: "Title, date, and a file are required.",
+                message: "Title, date, and atleast one file is required.",
             });
         }
 
@@ -37,63 +40,49 @@ export const createMemory = async (req, res) => {
             return res.status(404).json({ message: "User not found." });
         }
 
-        // 1️⃣ Create memory with 'processing' status
+        // 1️⃣ Create placeholder memory
         newMemory = await Memory.create({
             family: user.family,
             author: userId,
             title,
             story,
             date,
-            tags: tags ? tags.split(",").map((tag) => tag.trim()) : [],
-            type: file.mimetype.startsWith("video") ? "video" : "photo",
-            mediaUrl: "placeholder-url",
+            tags: tags ? tags.split(",").map((t) => t.trim()) : [],
+            type: "mixed",
+            mediaURLs: [], // store array of { url, type }
             status: "processing",
         });
 
-        // 2️⃣ Populate author info
-        const populatedMemory = await Memory.findById(newMemory._id)
-            .populate("author", "fullName")
-            .lean();
-
-        // Step 3: If still missing fullName, assign manually (safety net)
-        if (!populatedMemory.author?.fullName) {
-            populatedMemory.author = { _id: userId, fullName: user.fullName };
-        }
-
-        // 3️⃣ Send immediate response to frontend
+        // 2️⃣ Send immediate response
         res.status(201).json({
             success: true,
             message: "Memory is processing...",
-            memory: populatedMemory,
+            memory: newMemory,
         });
 
-        // 4️⃣ Background upload (no retry)
-        try {
-            const cloudinaryResponse = await uploadToCloudinary(
-                file,
-                `virasat/${user.family}/memories`
-            );
+        // 3️⃣ Background upload of multiple files
+        const uploadedResults = await Promise.all(
+            files.map((file) =>
+                uploadToCloudinary(file, `virasat/${user.family}/memories`)
+            )
+        );
 
-            // 5️⃣ Update memory after successful upload
-            await Memory.findByIdAndUpdate(newMemory._id, {
-                mediaUrl: cloudinaryResponse.secure_url,
-                status: "completed",
-            });
-            
+        // 4️⃣ Update DB with final URLs and types
+        const formattedMedia = uploadedResults.map((r) => ({
+            url: r.secure_url,
+            type: r.resource_type,
+        }));
 
-            console.log(
-                `✅ Memory ${newMemory._id} updated successfully with media URL.`
-            );
-        } catch (uploadError) {
-            console.error("❌ Cloudinary upload failed:", uploadError.message);
-            await Memory.findByIdAndDelete(newMemory._id);
-            console.log(`🗑️ Removed failed memory record: ${newMemory._id}`);
-        }
-    } catch (error) {
-        if (newMemory && newMemory._id) {
-            await Memory.findByIdAndDelete(newMemory._id);
-        }
-        console.error("Error creating memory:", error);
+        await Memory.findByIdAndUpdate(newMemory._id, {
+            mediaURLs: formattedMedia,
+            status: "completed",
+        });
+
+        console.log(`✅ Memory ${newMemory._id} updated successfully with all media.`);
+    }
+    catch (error) {
+        if (newMemory && newMemory._id) await Memory.findByIdAndDelete(newMemory._id);
+        console.error("❌ Error creating memory:", error);
         return res.status(500).json({ message: "Internal Server Error" });
     }
 };
