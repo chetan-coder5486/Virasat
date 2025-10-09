@@ -333,15 +333,20 @@ export const getMemories = async (req, res) => {
     try {
         const userId = req.id;
         const user = await User.findById(userId);
-        if (!user || !user.family) {
-            return res.status(404).json({ message: "User or family not found." });
-        }
+        if (!user || !user.family) { /* ... */ }
 
-        // 1. Get filter and search parameters from the URL query
-        const { search, type, member, tag } = req.query;
-
-        // 2. Build the base query to only get memories from the user's family
+        // Get the optional circleId from the query
+        const { search, type, member, tag, circleId } = req.query;
         let query = { family: user.family };
+
+        // --- THIS IS THE NEW PART ---
+        if (circleId) {
+            // If a circleId is provided, find memories in that circle
+            query.circle = circleId;
+        } else {
+            // If not, only show memories that are NOT in a circle (for the main archive)
+            query.circle = null;
+        }
 
         // 3. Dynamically add filters to the query if they exist
         if (type && type !== 'all') {

@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 
-export const UploadMemoryModal = ({ onClose }) => {
+export const UploadMemoryModal = ({ onClose, circleId = null }) => {
   const dispatch = useDispatch();
     const { loading } = useSelector(state => state.memories);
   const [formData, setFormData] = useState({
@@ -38,6 +38,9 @@ export const UploadMemoryModal = ({ onClose }) => {
         data.append('date', formData.date);
         data.append('tags', formData.tags);
         data.append('memoryFile', formData.memoryFile);
+        if (circleId) {
+            data.append('circleId', circleId);
+        }
 
         try {
             // Use await and .unwrap() to handle the thunk's promise
