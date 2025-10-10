@@ -51,7 +51,7 @@ const Profile = () => {
     const file = e.target.files[0];
     if (file) {
       const imageUrl = URL.createObjectURL(file);
-      //setPreview(imageUrl);
+      setPreview(imageUrl);
       setFormData((prev) => ({ ...prev, profilePhoto: file }));
     }
   };
