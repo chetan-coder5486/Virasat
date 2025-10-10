@@ -113,7 +113,7 @@ const FilterBar = ({
         name="type"
         value={filters.type}
         onChange={onFilterChange}
-        className="p-2 border border-rose-200 rounded-lg"
+        className="p-2 border border-rose-200 rounded-lg cursor-pointer"
       >
         <option value="all">All Types</option>
         <option value="photo">Photos</option>
@@ -124,7 +124,7 @@ const FilterBar = ({
         name="member"
         value={filters.member}
         onChange={onFilterChange}
-        className="p-2 border border-rose-200 rounded-lg"
+        className="p-2 border border-rose-200 rounded-lg cursor-pointer"
       >
         <option value="all">All Members</option>
         {members.map((m) => (
@@ -491,7 +491,7 @@ export default function ArchivePage() {
                 {/* The main button is now in the header, so this is a simplified CTA */}
                 <motion.button
                   onClick={() => setIsUploadModalOpen(true)}
-                  className="inline-flex items-center gap-2 rounded-xl bg-rose-600 px-6 py-4 text-lg font-medium text-white shadow-lg"
+                  className="inline-flex items-center gap-2 rounded-xl bg-rose-600 px-6 py-4 text-lg font-medium text-white shadow-lg cursor-pointer"
                 >
                   <PlusCircle />
                   Upload a Memory
