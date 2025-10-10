@@ -24,6 +24,7 @@ export const fetchMemories = createAsyncThunk(
 );
 
 
+
 export const createMemory = createAsyncThunk(
     'memories/create',
     async (formData, { rejectWithValue }) => {
@@ -44,3 +45,4 @@ export const createMemory = createAsyncThunk(
         }
     }
 );
+

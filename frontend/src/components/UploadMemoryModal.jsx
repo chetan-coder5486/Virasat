@@ -1,36 +1,40 @@
-import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { motion } from 'framer-motion';
-import { createMemory } from '@/redux/memoryThunks';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Loader2 } from 'lucide-react';
+import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { motion } from "framer-motion";
+import { createMemory } from "@/redux/memoryThunks";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Loader2 } from "lucide-react";
 
 export const UploadMemoryModal = ({ onClose, circleId = null }) => {
   const dispatch = useDispatch();
   const { loading } = useSelector((state) => state.memories);
 
   const [formData, setFormData] = useState({
-    title: '',
-    story: '',
-    date: '',
-    tags: '',
+    title: "",
+    story: "",
+    date: "",
+    tags: "",
     circleId: [],
     memoryFiles: [], // 🔹 Store multiple files
+    isMilestone: false,
   });
 
   // Handle input changes
   const handleChange = (e) => {
-    const { name, value, files } = e.target;
+    const { name, value, type, checked, files } = e.target;
 
-    if (name === 'memoryFiles') {
+    if (name === "memoryFiles") {
       // 🔹 Convert FileList to Array for multiple files
       setFormData((prev) => ({
         ...prev,
         memoryFiles: Array.from(files),
       }));
+    } else if (type === "checkbox") {
+      // 2. Handle the checkbox change
+      setFormData((prev) => ({ ...prev, [name]: checked }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
@@ -41,24 +45,25 @@ export const UploadMemoryModal = ({ onClose, circleId = null }) => {
     e.preventDefault();
 
     const data = new FormData();
-    data.append('title', formData.title);
-    data.append('story', formData.story);
-    data.append('date', formData.date);
-    data.append('tags', formData.tags);
+    data.append("title", formData.title);
+    data.append("story", formData.story);
+    data.append("date", formData.date);
+    data.append("tags", formData.tags);
+    data.append("isMilestone", formData.isMilestone);
     if (circleId) {
-      data.append('circleId', circleId);
+      data.append("circleId", circleId);
     }
 
     // 🔹 Append all selected files
     formData.memoryFiles.forEach((file) => {
-      data.append('memoryFiles', file);
+      data.append("memoryFiles", file);
     });
 
     try {
       await dispatch(createMemory(data)).unwrap();
       onClose(); // close modal if upload succeeds
     } catch (error) {
-      console.error('Failed to create memory:', error);
+      console.error("Failed to create memory:", error);
     }
   };
 
@@ -88,7 +93,13 @@ export const UploadMemoryModal = ({ onClose, circleId = null }) => {
 
           <div>
             <Label htmlFor="date">Date</Label>
-            <Input id="date" name="date" type="date" onChange={handleChange} required />
+            <Input
+              id="date"
+              name="date"
+              type="date"
+              onChange={handleChange}
+              required
+            />
           </div>
 
           <div>
@@ -113,12 +124,31 @@ export const UploadMemoryModal = ({ onClose, circleId = null }) => {
               required
             />
           </div>
-
+          <div className="flex items-center space-x-2">
+            <input
+              id="isMilestone"
+              name="isMilestone"
+              type="checkbox"
+              checked={formData.isMilestone}
+              onChange={handleChange}
+              className="h-4 w-4 rounded border-gray-300 text-rose-600 focus:ring-rose-500"
+            />
+            <Label
+              htmlFor="isMilestone"
+              className="text-sm font-medium text-rose-800"
+            >
+              Mark as a milestone (e.g., birth, wedding)
+            </Label>
+          </div>
           <div className="flex justify-end gap-2 pt-4">
             <Button type="button" variant="ghost" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading} className="bg-green-600 hover:bg-green-700">
+            <Button
+              type="submit"
+              disabled={loading}
+              className="bg-green-600 hover:bg-green-700"
+            >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Save Memory
             </Button>
