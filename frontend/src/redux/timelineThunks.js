@@ -4,9 +4,10 @@ import { FAMILY_API_ENDPOINT } from '@/utils/constant';
 
 export const fetchTimelineEvents = createAsyncThunk(
     'timeline/fetchEvents',
-    async (_, { rejectWithValue }) => {
+    async ({ sort = 'asc' } = {}, { rejectWithValue }) => {
         try {
             const response = await axios.get(`${FAMILY_API_ENDPOINT}/timeline`, {
+                params: { sort },
                 withCredentials: true,
             });
             return response.data.events;

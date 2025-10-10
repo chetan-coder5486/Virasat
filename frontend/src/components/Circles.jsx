@@ -3,7 +3,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, MessageSquare, Settings, Loader2 } from "lucide-react";
+import {
+  Plus,
+  Search,
+  MessageSquare,
+  Settings,
+  Loader2,
+  X,
+} from "lucide-react";
 import Navbar from "./shared/Navbar";
 import { useSelector, useDispatch } from "react-redux";
 import { CreateCircleModal } from "./CreateCircleModal";
@@ -11,6 +18,7 @@ import { UploadMemoryModal } from "./UploadMemoryModal";
 import { MemoryDetailModal } from "./Memories"; // Assuming MemoryDetailModal is in Memories.jsx
 import { fetchMemories } from "@/redux/memoryThunks";
 import { setActiveCircleId } from "@/redux/circleSlice";
+import { updateCircleName } from "@/redux/circleThunks";
 
 // ====================================================================
 // Sub-Components
@@ -127,6 +135,8 @@ const CircleDetail = ({
   loading,
   onShareClick,
   onMemoryClick,
+  sortOrder,
+  onSortChange,
 }) => (
   <motion.div
     key={circle._id}
@@ -152,9 +162,23 @@ const CircleDetail = ({
           </p>
         </div>
       </div>
-      <Button variant="ghost" size="icon">
-        <Settings className="h-5 w-5 text-rose-600" />
-      </Button>
+      <div className="flex items-center gap-3">
+        <select
+          value={sortOrder}
+          onChange={(e) => onSortChange(e.target.value)}
+          className="p-2 border border-rose-200 rounded-lg bg-white/80 text-rose-800"
+        >
+          <option value="desc">Recent → Oldest</option>
+          <option value="asc">Oldest → Recent</option>
+        </select>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => circle._openSettings?.()}
+        >
+          <Settings className="h-5 w-5 text-rose-600" />
+        </Button>
+      </div>
     </header>
 
     {/* Memories Content Area */}
@@ -214,10 +238,13 @@ export default function Circles() {
     (state) => state.memories
   );
 
+  const [sortOrder, setSortOrder] = useState("desc");
   const [selectedMemory, setSelectedMemory] = useState(null);
   const [isCircleModalOpen, setIsCircleModalOpen] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [renameValue, setRenameValue] = useState("");
 
   const selectedCircle = useMemo(
     () => circles.find((c) => c._id === activeCircleId) ?? null,
@@ -240,10 +267,12 @@ export default function Circles() {
           searchTerm: "",
           filters: {},
           circleId: selectedCircle._id,
+          sort: sortOrder,
         })
       );
+      setRenameValue(selectedCircle.circleName || "");
     }
-  }, [selectedCircle, dispatch]);
+  }, [selectedCircle, sortOrder, dispatch]);
 
   const filteredCircles = useMemo(() => {
     if (!circles) return [];
@@ -305,11 +334,16 @@ export default function Circles() {
             {selectedCircle ? (
               <CircleDetail
                 key={selectedCircle._id}
-                circle={selectedCircle}
+                circle={{
+                  ...selectedCircle,
+                  _openSettings: () => setIsSettingsOpen(true),
+                }}
                 memories={memories}
                 loading={memoriesLoading}
                 onShareClick={() => setIsUploadModalOpen(true)}
                 onMemoryClick={setSelectedMemory}
+                sortOrder={sortOrder}
+                onSortChange={setSortOrder}
               />
             ) : (
               <div className="h-full flex flex-col justify-center items-center text-center text-rose-600">
@@ -324,6 +358,71 @@ export default function Circles() {
 
       {/* --- Modals --- */}
       <AnimatePresence>
+        {isSettingsOpen && selectedCircle && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsSettingsOpen(false)}
+          >
+            <motion.div
+              className="w-full max-w-md bg-white rounded-2xl p-5 relative"
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.9 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                className="absolute top-3 right-3 text-rose-700"
+                onClick={() => setIsSettingsOpen(false)}
+              >
+                <X className="h-5 w-5" />
+              </button>
+              <h3 className="text-xl font-semibold text-rose-800 mb-4">
+                Circle Settings
+              </h3>
+              <div className="mb-4">
+                <label className="block text-sm text-rose-700 mb-1">
+                  Circle name
+                </label>
+                <input
+                  className="w-full p-2 border border-rose-200 rounded-lg"
+                  value={renameValue}
+                  onChange={(e) => setRenameValue(e.target.value)}
+                />
+                <button
+                  className="mt-3 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg"
+                  onClick={async () => {
+                    if (!renameValue.trim()) return;
+                    await dispatch(
+                      updateCircleName({
+                        id: selectedCircle._id,
+                        circleName: renameValue.trim(),
+                      })
+                    );
+                    setIsSettingsOpen(false);
+                  }}
+                >
+                  Save name
+                </button>
+              </div>
+              <div>
+                <h4 className="text-md font-semibold text-rose-800 mb-2">
+                  Members
+                </h4>
+                <ul className="space-y-1 max-h-48 overflow-y-auto">
+                  {(selectedCircle.memberId || []).map((m) => (
+                    <li key={m._id} className="text-rose-700 text-sm">
+                      {m.fullName}{" "}
+                      <span className="text-rose-400">({m.email})</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
         {isUploadModalOpen && selectedCircle && (
           <UploadMemoryModal
             onClose={() => setIsUploadModalOpen(false)}

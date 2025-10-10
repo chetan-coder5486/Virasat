@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import transporter from '../config/mailer.js'; // Import the transporter
 import dotenv from 'dotenv';
 import { Memory } from '../models/memory.model.js';
+import { jsPDF } from 'jspdf';
 import mongoose from 'mongoose';
 dotenv.config();
 
@@ -337,7 +338,7 @@ export const getMemories = async (req, res) => {
         if (!user || !user.family) { /* ... */ }
 
         // Get the optional circleId from the query
-        const { search, type, member, tag, circleId } = req.query;
+        const { search, type, member, tag, circleId, sort } = req.query;
         let query = { family: user.family };
         console.log("Circle ID:", circleId);
 
@@ -370,10 +371,11 @@ export const getMemories = async (req, res) => {
             ];
         }
 
-        // 5. Execute the query, populate author, and sort by newest first
+        // 5. Execute the query, populate author, and sort (default newest first)
+        const sortOrder = sort === 'asc' ? 'asc' : 'desc';
         const memories = await Memory.find(query)
             .populate("author", "fullName")
-            .sort({ date: -1 });
+            .sort({ date: sortOrder });
 
         return res.status(200).json({
             success: true,
@@ -467,56 +469,103 @@ export const getPdfExport = async (req, res) => {
         const user = req.user;
         const family = await Family.findById(user.family);
 
-        // 1. Fetch all memories for the family, sorted by date
-        const memories = await Memory.find({ family: user.family, status: 'completed' })
-            .populate('author', 'fullName')
-            .sort({ date: 'asc' });
+        const {
+            onlyMilestones = 'false',
+            excludeCircles = 'true',
+            sort = 'asc',
+            includeTags = 'true',
+        } = req.query;
 
-        if (!memories || memories.length === 0) {
-            return res.status(404).json({ message: "No memories to export." });
+        // 1. Build query
+        const query = { family: user.family, status: 'completed' };
+        if (onlyMilestones === 'true') query.isMilestone = true;
+        if (excludeCircles === 'true') {
+            query.$or = [{ circleId: null }, { circleId: { $exists: false } }];
         }
 
-        // 2. Create a new PDF document
+        // 2. Fetch memories
+        const memories = await Memory.find(query)
+            .populate('author', 'fullName')
+            .sort({ date: sort === 'desc' ? 'desc' : 'asc' });
+
+        if (!memories || memories.length === 0) {
+            return res.status(404).json({ message: 'No memories to export.' });
+        }
+
+        // 3. Create PDF
         const doc = new jsPDF();
-        let yPosition = 20; // Vertical position on the page
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
 
-        // Add a title
-        doc.setFontSize(22);
-        doc.text(`The ${family.familyName} Family Trunk`, 105, yPosition, { align: 'center' });
-        yPosition += 20;
+        // Cover page
+        doc.setFontSize(24);
+        doc.text(`The ${family.familyName} Family Trunk`, pageWidth / 2, 40, { align: 'center' });
+        doc.setFontSize(12);
+        doc.text(`Exported on ${new Date().toLocaleString()}`, pageWidth / 2, 50, { align: 'center' });
+        doc.text(`Entries: ${memories.length}${onlyMilestones === 'true' ? ' (milestones only)' : ''}`, pageWidth / 2, 58, { align: 'center' });
 
-        // 3. Loop through memories and add them to the PDF
-        memories.forEach(memory => {
-            if (yPosition > 270) { // Check if we need a new page
+        // Footer page number helper
+        const addFooter = () => {
+            const pageNo = doc.internal.getNumberOfPages();
+            doc.setFontSize(10);
+            doc.text(`${pageNo}`, pageWidth - 12, pageHeight - 8);
+        };
+        addFooter();
+
+        // Content pages
+        let y = 75;
+        doc.setFontSize(12);
+        memories.forEach((m, idx) => {
+            if (y > pageHeight - 30) {
                 doc.addPage();
-                yPosition = 20;
+                addFooter();
+                y = 20;
+            }
+            doc.setFont(undefined, 'bold');
+            doc.setFontSize(16);
+            doc.text(m.title || 'Untitled', 15, y);
+            y += 7;
+
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(10);
+            const dateStr = m.date ? new Date(m.date).toLocaleDateString() : '';
+            const byline = `By ${m.author?.fullName || 'Unknown'}${dateStr ? ' on ' + dateStr : ''}`;
+            doc.text(byline, 15, y);
+            y += 6;
+
+            if (includeTags === 'true') {
+                const tags = Array.isArray(m.tags) && m.tags.length ? `Tags: ${m.tags.join(', ')}` : '';
+                if (tags) {
+                    const tagsLines = doc.splitTextToSize(tags, 180);
+                    doc.text(tagsLines, 15, y);
+                    y += tagsLines.length * 4 + 2;
+                }
             }
 
-            doc.setFontSize(16);
-            doc.setFont(undefined, 'bold');
-            doc.text(memory.title, 15, yPosition);
-            yPosition += 7;
-
-            doc.setFontSize(10);
-            doc.setFont(undefined, 'normal');
-            const memoryDate = new Date(memory.date).toLocaleDateString();
-            doc.text(`By ${memory.author.fullName} on ${memoryDate}`, 15, yPosition);
-            yPosition += 10;
-
             doc.setFontSize(12);
-            const storyLines = doc.splitTextToSize(memory.story || 'No story written.', 180);
-            doc.text(storyLines, 15, yPosition);
-            yPosition += (storyLines.length * 5) + 15; // Move down based on text length
+            const story = m.story || 'No story written.';
+            const lines = doc.splitTextToSize(story, 180);
+            lines.forEach((line) => {
+                if (y > pageHeight - 20) {
+                    doc.addPage();
+                    addFooter();
+                    y = 20;
+                }
+                doc.text(line, 15, y);
+                y += 6;
+            });
+            y += 6;
         });
 
-        // 4. Send the PDF file as a response
+        // 4. Send as Buffer
+        const pdfArrayBuffer = doc.output('arraybuffer');
+        const buffer = Buffer.from(pdfArrayBuffer);
+        const filename = `${family.familyName}_Trunk.pdf`;
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename="${family.familyName}_Trunk.pdf"`);
-        res.send(doc.output());
-
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.end(buffer);
     } catch (error) {
-        console.error("Error exporting PDF:", error);
-        res.status(500).json({ message: "Internal Server Error" });
+        console.error('Error exporting PDF:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
     }
-
-}
+};

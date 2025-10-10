@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { createCircle, getUserCircles } from './circleThunks'; // Import the thunk
+import { createCircle, getUserCircles, updateCircleName } from './circleThunks'; // Import the thunk
 
 const circlesSlice = createSlice({
     name: 'circles',
@@ -45,6 +45,23 @@ const circlesSlice = createSlice({
                 console.log("Fetched user circles:", action.payload);
             })
             .addCase(getUserCircles.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            });
+        builder
+            .addCase(updateCircleName.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(updateCircleName.fulfilled, (state, action) => {
+                state.loading = false;
+                const updated = action.payload;
+                const idx = state.items.findIndex((c) => c._id === updated._id);
+                if (idx !== -1) {
+                    state.items[idx] = updated;
+                }
+            })
+            .addCase(updateCircleName.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             });

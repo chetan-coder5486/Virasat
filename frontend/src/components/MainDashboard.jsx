@@ -5,6 +5,8 @@ import { createCircle } from "@/redux/circleThunks";
 import { useNavigate } from "react-router";
 import { CreateCircleModal } from "./CreateCircleModal";
 import { AnimatePresence } from "framer-motion";
+import axios from "axios";
+import { FAMILY_API_ENDPOINT } from "@/utils/constant";
 
 // --- Icons updated with the new color theme ---
 const ClockIcon = () => <span className="text-sky-500">🕒</span>;
@@ -29,6 +31,34 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
   const { familyData, isLoading, error } = useSelector((state) => state.family);
+  const handleExportPdf = async () => {
+    try {
+      const params = {
+        onlyMilestones: "false",
+        excludeCircles: "true",
+        sort: "asc",
+        includeTags: "true",
+      };
+      const response = await axios.get(`${FAMILY_API_ENDPOINT}/export-pdf`, {
+        params,
+        responseType: "blob",
+        withCredentials: true,
+      });
+      const blob = new Blob([response.data], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const familyName = familyData?.familyName || "Family_Trunk";
+      a.download = `${familyName}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Failed to export PDF:", err);
+      // Optional: surface a toast if your app uses it
+    }
+  };
   const today = getFormattedDate();
 
   // --- STATE MANAGEMENT FOR CIRCLE CREATION ---
@@ -60,6 +90,13 @@ const Dashboard = () => {
             >
               <CircleIcon />
               Create a Private Circle
+            </button>
+            <button
+              onClick={handleExportPdf}
+              className="flex items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+              title="Export a PDF of your family's memories"
+            >
+              📄 Export PDF
             </button>
           </div>
         </header>

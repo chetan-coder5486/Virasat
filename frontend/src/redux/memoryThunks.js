@@ -6,7 +6,7 @@ import { toast } from 'react-hot-toast';
 
 export const fetchMemories = createAsyncThunk(
     'memories/fetch',
-    async ({ searchTerm, filters, circleId }, { rejectWithValue }) => {
+    async ({ searchTerm, filters, circleId, sort = 'desc' }, { rejectWithValue }) => {
         try {
             const { member, ...restFilters } = filters || {};
             const response = await axios.get(`${FAMILY_API_ENDPOINT}/memories`, {
@@ -15,6 +15,7 @@ export const fetchMemories = createAsyncThunk(
                     ...restFilters,
                     ...(member && member !== 'all' ? { member: member } : {}),
                     circleId,
+                    sort,
                 },
                 withCredentials: true,
             });

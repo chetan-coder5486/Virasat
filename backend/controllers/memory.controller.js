@@ -137,6 +137,8 @@ export const createMemory = async (req, res) => {
 export const getTimelineEvents = async (req, res) => {
     try {
         const user = req.user; // From isAuthenticated middleware
+        const { sort } = req.query;
+        const sortOrder = sort === 'desc' ? 'desc' : 'asc';
 
         // Find all milestone memories for the user's family that are NOT tied to any circle
         // i.e., exclude those where circleId exists (circle-specific memories)
@@ -149,7 +151,7 @@ export const getTimelineEvents = async (req, res) => {
             ]
         })
             .populate('author', 'fullName') // Get author details
-            .sort({ date: 'asc' }); // Sort by date ascending (oldest first)
+            .sort({ date: sortOrder }); // Sort by date
 
         return res.status(200).json({
             success: true,

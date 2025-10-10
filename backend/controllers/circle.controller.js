@@ -53,7 +53,7 @@ export const getUserCircles = async (req, res) => {
                 { path: 'memberId', select: 'fullName email' }
             ]
         });
-        
+
         // 2️⃣ Defensive check: user might not exist or have no circles
         if (!user || !user.circleId || user.circleId.length === 0) {
             return res.status(200).json({
@@ -83,7 +83,38 @@ export const getUserCircles = async (req, res) => {
 
 
 
-// Additional CRUD operations for circles can be added here (updateCircle, deleteCircle, etc.)
+// Update a circle (rename) - only the owner can update
+export const updateCircle = async (req, res) => {
+    const userId = req.id;
+    const { id } = req.params;
+    const { circleName } = req.body;
+
+    try {
+        const circle = await Circle.findById(id);
+        if (!circle) {
+            return res.status(404).json({ success: false, message: 'Circle not found' });
+        }
+
+        if (String(circle.ownerId) !== String(userId)) {
+            return res.status(403).json({ success: false, message: 'Only the owner can rename this circle' });
+        }
+
+        if (circleName && circleName.trim().length > 0) {
+            circle.circleName = circleName.trim();
+        }
+
+        await circle.save();
+
+        const populated = await Circle.findById(circle._id)
+            .populate('ownerId', 'fullName email')
+            .populate('memberId', 'fullName email');
+
+        return res.status(200).json({ success: true, circle: populated });
+    } catch (error) {
+        console.error('Error updating circle:', error);
+        return res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+};
 
 
 

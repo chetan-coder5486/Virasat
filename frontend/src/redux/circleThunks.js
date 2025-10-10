@@ -40,3 +40,20 @@ export const getUserCircles = createAsyncThunk(
         }
     }
 );
+
+export const updateCircleName = createAsyncThunk(
+    'family/updateCircleName',
+    async ({ id, circleName }, { rejectWithValue }) => {
+        try {
+            const response = await axios.patch(
+                `${CIRCLE_API_ENDPOINT}/${id}`,
+                { circleName },
+                { withCredentials: true }
+            );
+            return response.data.circle;
+        } catch (error) {
+            const message = error.response?.data?.message || 'Failed to update circle.';
+            return rejectWithValue(message);
+        }
+    }
+);

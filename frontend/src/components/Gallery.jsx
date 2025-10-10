@@ -14,11 +14,13 @@ export default function Gallery() {
 
   const [petals, setPetals] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [sortOrder, setSortOrder] = useState("asc");
+  const [mediaIndex, setMediaIndex] = useState(0);
 
   // Fetch data when the component mounts
   useEffect(() => {
-    dispatch(fetchTimelineEvents());
-  }, [dispatch]);
+    dispatch(fetchTimelineEvents({ sort: sortOrder }));
+  }, [dispatch, sortOrder]);
 
   useEffect(() => {
     // Generate petals only once on mount
@@ -40,6 +42,17 @@ export default function Gallery() {
     <>
       <Navbar />
       <div className="timeline-container">
+        <div className="flex justify-end items-center gap-2 px-4 py-2">
+          <label className="text-sm text-rose-700">Sort:</label>
+          <select
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value)}
+            className="p-2 border border-rose-200 rounded-lg bg-white/80 text-rose-800"
+          >
+            <option value="asc">Oldest → Recent</option>
+            <option value="desc">Recent → Oldest</option>
+          </select>
+        </div>
         {/* Sakura Petal Animations */}
         {petals.map((p) => (
           <motion.div
@@ -104,7 +117,108 @@ export default function Gallery() {
                 <span className="modal-icon">{"🗓️"}</span>
                 <h2>{selectedEvent.title}</h2>
                 <h4>{new Date(selectedEvent.date).toLocaleDateString()}</h4>
-                {/* Use the 'story' field instead of 'description' */}
+
+                {/* Media Viewer */}
+                {Array.isArray(selectedEvent.mediaURLs) &&
+                  selectedEvent.mediaURLs.length > 0 && (
+                    <div className="modal-media">
+                      {(() => {
+                        const media = selectedEvent.mediaURLs || [];
+                        const current = media[mediaIndex] || null;
+                        if (!current) return null;
+                        if (current.type === "video") {
+                          return (
+                            <video
+                              key={mediaIndex}
+                              src={current.url}
+                              controls
+                              className="modal-media-el"
+                            />
+                          );
+                        }
+                        return (
+                          <img
+                            key={mediaIndex}
+                            src={current.url}
+                            alt={`media-${mediaIndex}`}
+                            className="modal-media-el"
+                          />
+                        );
+                      })()}
+
+                      {/* Nav buttons if multiple */}
+                      {selectedEvent.mediaURLs.length > 1 && (
+                        <>
+                          <button
+                            className="nav-btn left"
+                            aria-label="Prev"
+                            onClick={() =>
+                              setMediaIndex(
+                                (i) =>
+                                  (i - 1 + selectedEvent.mediaURLs.length) %
+                                  selectedEvent.mediaURLs.length
+                              )
+                            }
+                          >
+                            ‹
+                          </button>
+                          <button
+                            className="nav-btn right"
+                            aria-label="Next"
+                            onClick={() =>
+                              setMediaIndex(
+                                (i) => (i + 1) % selectedEvent.mediaURLs.length
+                              )
+                            }
+                          >
+                            ›
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                {/* Thumbnails */}
+                {Array.isArray(selectedEvent.mediaURLs) &&
+                  selectedEvent.mediaURLs.length > 1 && (
+                    <div className="modal-thumbs">
+                      {selectedEvent.mediaURLs.map((m, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setMediaIndex(i)}
+                          className={`modal-thumb ${
+                            i === mediaIndex ? "active" : ""
+                          }`}
+                          aria-label={`Go to media ${i + 1}`}
+                        >
+                          {m.type === "image" ? (
+                            <img src={m.url} alt={`thumb-${i}`} />
+                          ) : (
+                            <div className="thumb-video">▶</div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                {/* Meta & Story */}
+                <div className="modal-meta">
+                  {selectedEvent.author?.fullName && (
+                    <div className="byline">
+                      By {selectedEvent.author.fullName}
+                    </div>
+                  )}
+                  {Array.isArray(selectedEvent.tags) &&
+                    selectedEvent.tags.length > 0 && (
+                      <div className="tag-list">
+                        {selectedEvent.tags.map((t) => (
+                          <span className="tag-chip" key={t}>
+                            {t}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                </div>
                 <p>{selectedEvent.story}</p>
                 <button onClick={() => setSelectedEvent(null)}>Close</button>
               </motion.div>

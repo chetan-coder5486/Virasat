@@ -95,13 +95,15 @@ const FilterBar = ({
   onFilterChange,
   onTagSelect,
   members = [],
+  sortOrder,
+  onSortChange,
 }) => (
   <motion.div
     className="relative z-20 mb-8 p-4 bg-white/60 backdrop-blur-md rounded-xl shadow-md"
     initial={{ opacity: 0, y: -20 }}
     animate={{ opacity: 1, y: 0 }}
   >
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
       <input
         type="text"
         placeholder="Search memories..."
@@ -134,6 +136,15 @@ const FilterBar = ({
         ))}
       </select>
       <TagAutocomplete onTagSelect={onTagSelect} />
+      <select
+        name="sort"
+        value={sortOrder}
+        onChange={(e) => onSortChange(e.target.value)}
+        className="p-2 border border-rose-200 rounded-lg"
+      >
+        <option value="desc">Recent to Oldest</option>
+        <option value="asc">Oldest to Recent</option>
+      </select>
     </div>
   </motion.div>
 );
@@ -281,7 +292,7 @@ export const MemoryDetailModal = ({ memory, onClose }) => {
       onClick={onClose}
     >
       <motion.div
-        className="w-full max-w-4xl bg-white rounded-2xl p-6 relative max-h-[90vh] overflow-hidden"
+        className="w-full max-w-3xl lg:max-w-4xl bg-white rounded-2xl p-5 lg:p-6 relative max-h-[90vh] overflow-y-auto"
         initial={{ scale: 0.8 }}
         animate={{ scale: 1 }}
         exit={{ scale: 0.8 }}
@@ -294,10 +305,10 @@ export const MemoryDetailModal = ({ memory, onClose }) => {
           &times;
         </button>
 
-        <h2 className="text-3xl font-bold font-serif text-rose-800 mb-2 pr-10">
+        <h2 className="text-2xl lg:text-3xl font-bold font-serif text-rose-800 mb-2 pr-10">
           {memory.title}
         </h2>
-        <p className="text-md text-rose-600 mb-4">
+        <p className="text-sm lg:text-md text-rose-600 mb-4">
           {memory.author.fullName} -{" "}
           {new Date(memory.date).toLocaleDateString()}
         </p>
@@ -394,9 +405,15 @@ export const MemoryDetailModal = ({ memory, onClose }) => {
           </div>
         )}
 
-        <p className="mt-4 text-gray-700 leading-relaxed whitespace-pre-wrap">
-          {memory.story}
-        </p>
+        <div className="mt-4 pb-2">
+          <hr className="border-rose-100 mb-3" />
+          <h3 className="text-lg font-semibold text-rose-800 mb-2">Story</h3>
+          <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+            {memory.story && memory.story.trim().length > 0
+              ? memory.story
+              : "No story written yet."}
+          </p>
+        </div>
       </motion.div>
     </motion.div>
   );
@@ -419,13 +436,21 @@ export default function ArchivePage() {
   });
   const [selectedMemory, setSelectedMemory] = useState(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [sortOrder, setSortOrder] = useState("desc");
 
   useEffect(() => {
     const handler = setTimeout(() => {
-      dispatch(fetchMemories({ searchTerm, filters, circleId: "null" })); // Adjust circleId as needed
+      dispatch(
+        fetchMemories({
+          searchTerm,
+          filters,
+          circleId: "null",
+          sort: sortOrder,
+        })
+      ); // Adjust circleId as needed
     }, 500);
     return () => clearTimeout(handler);
-  }, [searchTerm, filters, dispatch]);
+  }, [searchTerm, filters, sortOrder, dispatch]);
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-rose-100 via-pink-50 to-amber-50">
@@ -456,6 +481,8 @@ export default function ArchivePage() {
           }
           onTagSelect={(tag) => setFilters((prev) => ({ ...prev, tag }))}
           members={members}
+          sortOrder={sortOrder}
+          onSortChange={setSortOrder}
         />
 
         {loading && memories.length === 0 ? (
