@@ -159,7 +159,7 @@ const Profile = () => {
             {/* Edit Dialog */}
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="mt-6 bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-xl text-sm inline-flex w-max">
+                <Button className="mt-6 bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-xl text-sm inline-flex w-max cursor-pointer">
                   Edit Profile
                 </Button>
               </DialogTrigger>
@@ -198,7 +198,7 @@ const Profile = () => {
                     name="gender"
                     value={formData.gender}
                     onChange={handleInputChange}
-                    className="border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-green-400 bg-white"
+                    className="border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-green-400 bg-white cursor-pointer"
                   >
                     <option value="" disabled>
                       Select Gender
@@ -242,7 +242,7 @@ const Profile = () => {
                   <div className="flex justify-end mt-4 gap-2">
                     <DialogClose asChild>
                       <Button
-                        className="bg-gray-300 text-gray-800 hover:bg-gray-400 px-4 py-2 rounded-md"
+                        className="bg-gray-300 text-gray-800 hover:bg-gray-400 px-4 py-2 rounded-md cursor-pointer"
                         disabled={loading}
                       >
                         Cancel
@@ -250,7 +250,7 @@ const Profile = () => {
                     </DialogClose>
                     <Button
                       onClick={handleSaveChanges}
-                      className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-xl text-sm inline-flex w-max"
+                      className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-xl text-sm inline-flex w-max cursor-pointer"
                       disabled={loading}
                     >
                       {loading ? 'Saving...' : 'Save Changes'}

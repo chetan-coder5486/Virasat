@@ -141,13 +141,13 @@ export const UploadMemoryModal = ({ onClose, circleId = null }) => {
             </Label>
           </div>
           <div className="flex justify-end gap-2 pt-4">
-            <Button type="button" variant="ghost" onClick={onClose}>
+            <Button type="button" className="cursor-pointer" variant="ghost" onClick={onClose}>
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={loading}
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-green-600 hover:bg-green-700 cursor-pointer"
             >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Save Memory
