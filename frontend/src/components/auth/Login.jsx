@@ -1,38 +1,44 @@
 import React, { useState } from "react";
 import AuthNavbar from "../shared/AuthNavbar";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser } from "../../redux/authThunks"; // FIX 1: Import the async thunk
+import { acceptInvite } from "../../redux/familyThunks"; // 3. Import the thunk
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
-  const { loading } = useSelector(state => state.auth); // Get loading state from Redux
+  // We can get the loading state from both slices if needed
+  const { loading: authLoading } = useSelector((state) => state.auth);
+  const { loading: familyLoading } = useSelector((state) => state.family);
+  const isLoading = authLoading || familyLoading; // Combine loading states
 
-  const [input, setInput] = useState({
-    email: "",
-    password: "",
-  });
+  const [input, setInput] = useState({ email: "", password: "" });
+  const inviteToken = location.state?.inviteToken;
 
   const changeEventHandler = (e) => {
     setInput({ ...input, [e.target.name]: e.target.value });
   };
 
-  // FIX 2: The submit handler is now much simpler
   const submitHandler = async (e) => {
     e.preventDefault();
     try {
-      // Dispatch the thunk and wait for it to complete.
-      // .unwrap() will return the fulfilled action's payload or throw an error.
       await dispatch(loginUser(input)).unwrap();
-      
-      // Navigate only after the login is successful
-      navigate("/"); 
+
+      // Check sessionStorage for a pending invite token
+      const pendingInviteToken = sessionStorage.getItem("inviteToken");
+
+      if (pendingInviteToken) {
+        // 4. Dispatch the new thunk
+        await dispatch(acceptInvite({ token: pendingInviteToken })).unwrap();
+        sessionStorage.removeItem("inviteToken");
+      }
+
+      navigate("/dashboard");
     } catch (error) {
-      // The error toast is already handled inside the thunk's rejectWithValue.
-      // We can log the error here for debugging if needed.
-      console.error("Failed to login:", error);
+      console.error("Login or invite process failed:", error);
     }
   };
 
@@ -97,12 +103,8 @@ const Login = () => {
               </div>
 
               {/* FIX 3: Disable button based on loading state from Redux */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full rounded-xl bg-rose-600 px-6 py-3 text-lg font-medium text-white shadow-md transition-colors duration-300 hover:bg-rose-700 disabled:bg-rose-400 disabled:cursor-not-allowed"
-              >
-                {loading ? "Logging in..." : "Log In"}
+              <button type="submit" disabled={isLoading} className="...">
+                {isLoading ? "Please wait..." : "Log In"}
               </button>
             </form>
 
@@ -120,3 +122,54 @@ const Login = () => {
 };
 
 export default Login;
+
+// import React, { useState } from 'react';
+// import { useLocation, useNavigate } from 'react-router-dom';
+// import { useDispatch, useSelector } from 'react-redux';
+// import { loginUser } from '../../redux/authThunks';
+
+// const Login = () => {
+//   const navigate = useNavigate();
+//   const location = useLocation();
+//   const dispatch = useDispatch();
+//   // We can get the loading state from both slices if needed
+//   const { loading: authLoading } = useSelector(state => state.auth);
+//   const { loading: familyLoading } = useSelector(state => state.family);
+//   const isLoading = authLoading || familyLoading; // Combine loading states
+
+//   const [input, setInput] = useState({ email: "", password: "" });
+//   const inviteToken = location.state?.inviteToken;
+
+//   const changeEventHandler = (e) => {
+//     setInput({ ...input, [e.target.name]: e.target.value });
+//   };
+
+//   const submitHandler = async (e) => {
+//     e.preventDefault();
+//     try {
+//       await dispatch(loginUser(input)).unwrap();
+
+//       if (inviteToken) {
+//         // 4. Dispatch the new thunk
+//         await dispatch(acceptInvite({ token: inviteToken })).unwrap();
+//       }
+
+//       navigate("/dashboard");
+//     } catch (error) {
+//       console.error("Login or invite process failed:", error);
+//     }
+//   };
+
+//   return (
+//     // ... your JSX, using 'isLoading' to disable the button
+//     <button
+//       type="submit"
+//       disabled={isLoading}
+//       className="..."
+//     >
+//       {isLoading ? "Please wait..." : "Log In"}
+//     </button>
+//   );
+// };
+
+// export default Login;

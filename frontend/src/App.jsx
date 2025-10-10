@@ -13,16 +13,25 @@ import Spinner from './components/shared/Spinner';
 
 import { getFamilyDetails } from './redux/familyThunks';
 import Memories from './components/Memories';
+import Circles from './components/Circles';
+import { getUserCircles } from './redux/circleThunks';
+import ProtectedRoute from './components/ProtectedRoutes';
 
 const appRouter = createBrowserRouter([
   { path: '/', element: <Home /> },
   { path: '/login', element: <Login /> },
   { path: '/signup', element: <Signup /> },
-  { path: '/dashboard', element: <Dashboard /> },
-  { path: '/gallery', element: <Gallery /> },
-  { path: '/family', element: <Family /> },
-  { path: '/memories', element: <Memories /> },
   { path: '/join-family', element: <JoinFamily /> }, // Corrected path name
+  {
+    element: <ProtectedRoute />, // Wrap protected routes
+    children: [
+    { path: '/dashboard', element: <Dashboard /> },
+    { path: '/gallery', element: <Gallery /> },
+    { path: '/family', element: <Family /> },
+    { path: '/memories', element: <Memories /> },
+    { path: '/circles', element: <Circles /> }, // Corrected path name
+    ]
+  }
 ]);
 
 const App = () => {
@@ -34,8 +43,9 @@ const App = () => {
   useEffect(() => {
     // If the user is authenticated on initial load...
     if (isAuthenticated) {
-      // ...then fetch their family data. The 'pending' state will set loading to true.
+      console.log('DISPATCH GET FAMILY from App')
       dispatch(getFamilyDetails());
+      dispatch(getUserCircles());
     }
   }, [isAuthenticated, dispatch]);
 
@@ -43,7 +53,6 @@ const App = () => {
   if (isAuthenticated && familyLoading) {
     return <Spinner />;
   }
-
   return (
     // Your main app is rendered after the initial fetch is complete
     <RouterProvider router={appRouter} />

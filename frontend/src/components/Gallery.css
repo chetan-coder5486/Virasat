@@ -1,41 +1,37 @@
 /* Gallery.css */
 @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&display=swap');
 
-body {
+html, body, #root {
+  height: 100%;
   margin: 0;
-  font-family: 'Lora', serif; /* A more elegant, timeless font */
-  background: linear-gradient(to bottom, #dbb0be, #d67269);
+  padding: 0;
+  font-family: 'Lora', serif;
+  background: linear-gradient(to bottom right, #f5fbff, #d8f3ff, #d3f8d3);
+  background-attachment: fixed;
   overflow-x: hidden;
 }
 
+/* --- Main Container --- */
 .timeline-container {
   position: relative;
   width: 100%;
   padding: 80px 0;
   overflow: hidden;
+  background: transparent; /* Let the global gradient show through */
 }
 
-/* --- The Tree Trunk --- */
+/* --- Tree Trunk (now a green branch) --- */
 .timeline-trunk {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  
-  /* Adjust width for the SVG */
-  width: 100px; 
+  width: 250px;
   height: 100%;
   top: 0;
-
-  /* Set the fill color for the SVG path */
-  color: #6d4c41; 
-  
-  /* Remove the old background and shadow styles */
-  /* background: linear-gradient(...); */
-  /* box-shadow: ...; */
-  /* border-radius: ...; */
+  color:#8B4513; /* deep green trunk color */
 }
 
-/* --- Event Blossoms (Alternating Layout) --- */
+/* --- Event Layout --- */
 .timeline-events {
   position: relative;
   width: 100%;
@@ -43,50 +39,49 @@ body {
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 80px; /* Space between events */
+  gap: 80px;
 }
 
+/* --- Event Box (light leafy green gradient) --- */
 .timeline-event {
   position: relative;
-  width: calc(50% - 60px); /* Card width */
-  background: rgba(255, 255, 255, 0.8);
+  width: calc(50% - 60px);
+  background: linear-gradient(
+    135deg,
+    rgba(200, 255, 200, 0.9),
+    rgba(230, 255, 230, 0.85)
+  );
   backdrop-filter: blur(10px);
   border-radius: 20px;
   padding: 20px;
-  box-shadow: 0 8px 25px rgba(185, 28, 28, 0.08);
+  box-shadow: 0 8px 25px rgba(46, 125, 50, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.5);
   cursor: pointer;
   transition: transform 0.4s ease, box-shadow 0.4s ease;
 }
 
-.timeline-event.left {
-  align-self: flex-start;
+.timeline-event:hover {
+  transform: scale(1.02);
+  box-shadow: 0 10px 35px rgba(56, 142, 60, 0.25);
 }
 
-.timeline-event.right {
-  align-self: flex-end;
-}
+.timeline-event.left { align-self: flex-start; }
+.timeline-event.right { align-self: flex-end; }
 
-/* The connecting twig pseudo-element */
+/* --- Connecting Twig --- */
 .timeline-event::before {
   content: '';
   position: absolute;
   top: 35px;
   width: 50px;
   height: 2px;
-  background: #c08497;
+  background: #4caf50; /* fresh green twig color */
   z-index: -1;
 }
+.timeline-event.left::before { right: -50px; }
+.timeline-event.right::before { left: -50px; }
 
-.timeline-event.left::before {
-  right: -50px;
-}
-
-.timeline-event.right::before {
-  left: -50px;
-}
-
-/* --- Event Blossom Styling --- */
+/* --- Event Icons --- */
 .event-icon {
   position: absolute;
   top: 50%;
@@ -100,25 +95,18 @@ body {
   justify-content: center;
   align-items: center;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  border: 3px solid #f9a8d4;
+  border: 3px solid #81c784; /* light green border */
   z-index: 10;
 }
+.timeline-event.left .event-icon { right: -105px; }
+.timeline-event.right .event-icon { left: -105px; }
 
-.timeline-event.left .event-icon {
-  right: -105px;
-}
-
-.timeline-event.right .event-icon {
-  left: -105px;
-}
-
-/* The glowing aura pseudo-element */
 .event-icon::after {
   content: '';
   position: absolute;
   width: 100%;
   height: 100%;
-  background: #f472b6;
+  background: #a5d6a7; /* subtle green glow */
   border-radius: 50%;
   z-index: -1;
   transition: transform 0.4s ease, opacity 0.4s ease;
@@ -126,36 +114,35 @@ body {
   opacity: 0;
   filter: blur(10px);
 }
-
 .timeline-event:hover .event-icon::after {
   transform: scale(1.2);
   opacity: 0.5;
 }
 
+/* --- Event Content --- */
 .event-content h3 {
-  color: #9d174d;
+  color: #1b5e20;
   font-weight: 600;
   margin-bottom: 6px;
   font-size: 1.1rem;
 }
-
 .event-content p {
-  color: #be185d;
+  color: #33691e;
   font-size: 0.9rem;
   font-style: italic;
 }
 
-/* --- Sakura Petal Animation --- */
+/* --- Leaf Petals --- */
 .sakura-petal {
   position: absolute;
-  background: radial-gradient(circle at 30% 30%, #ffc0cb, #ffb6c1);
+  background: radial-gradient(circle at 30% 30%, #a8e6a3, #81c784);
   border-radius: 40% 60% 70% 30% / 40% 40% 60% 60%;
   opacity: 0.8;
   pointer-events: none;
-  z-index: 20; /* Petals should be on top */
+  z-index: 20;
 }
 
-/* --- Interactive Modal --- */
+/* --- Modal --- */
 .modal-backdrop {
   position: fixed;
   top: 0;
@@ -168,18 +155,16 @@ body {
   align-items: center;
   z-index: 100;
 }
-
 .modal-content {
-  background: #fff0f5;
+  background: #f1fff1;
   padding: 40px;
   border-radius: 20px;
   text-align: center;
   max-width: 400px;
   width: 90%;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  border: 1px solid #f9a8d4;
+  border: 1px solid #81c784;
 }
-
 .modal-icon {
   font-size: 3rem;
   background: #fff;
@@ -191,17 +176,16 @@ body {
   align-items: center;
   margin: 0 auto 20px auto;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  border: 3px solid #f9a8d4;
+  border: 3px solid #81c784;
 }
-
-.modal-content h2 { color: #9d174d; margin-bottom: 5px; }
-.modal-content h4 { color: #be185d; margin-bottom: 20px; font-style: italic; font-weight: 400; }
-.modal-content p { color: #831843; line-height: 1.6; }
+.modal-content h2 { color: #1b5e20; margin-bottom: 5px; }
+.modal-content h4 { color: #2e7d32; margin-bottom: 20px; font-style: italic; font-weight: 400; }
+.modal-content p { color: #33691e; line-height: 1.6; }
 .modal-content button {
   margin-top: 25px;
   padding: 10px 30px;
   border: none;
-  background: #f472b6;
+  background: #66bb6a;
   color: white;
   border-radius: 50px;
   cursor: pointer;
@@ -209,4 +193,4 @@ body {
   font-size: 1rem;
   transition: background 0.3s ease;
 }
-.modal-content button:hover { background: #db2777; }
+.modal-content button:hover { background: #388e3c; }

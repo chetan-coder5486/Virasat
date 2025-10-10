@@ -1,11 +1,11 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { fetchMemories } from './memoryThunks';
+import { createMemory, fetchMemories } from './memoryThunks';
 
 const memorySlice = createSlice({
     name: 'memories',
     initialState: {
         items: [],
-        loading: true,
+        loading: false,
         error: null,
     },
     reducers: {},
@@ -19,6 +19,18 @@ const memorySlice = createSlice({
                 state.items = action.payload;
             })
             .addCase(fetchMemories.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+            .addCase(createMemory.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(createMemory.fulfilled, (state, action) => {
+                state.loading = false;
+                // Add the new memory to the beginning of the items array
+                state.items.unshift(action.payload);
+            })
+            .addCase(createMemory.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             });
