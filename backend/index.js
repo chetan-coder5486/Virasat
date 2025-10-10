@@ -41,7 +41,6 @@ app.use("/api/v1/user", userRoute);
 app.use("/api/v1/family", familyRoute); 
 app.use("/api/v1/circle", circleRoute); // New route for circle management
 
-
 app.listen(PORT, () => {
     connectDb()
     console.log(`✅ Server is running successfully on http://localhost:${PORT}`);
