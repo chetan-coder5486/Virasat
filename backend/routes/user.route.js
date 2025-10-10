@@ -1,6 +1,13 @@
-import express from "express"
-import { login, logout, register, verifyInvite, verifyOTP } from "../controllers/user.controller.js";
+import express from "express";
+import { login, logout, register, verifyInvite, updateUserProfile, verifyOTP } from "../controllers/user.controller.js";
+import upload from "../middlewares/multer.js";
+import isAuthenticated from "../middlewares/isAuthenticated.js";
+
 const router = express.Router();
+
+// Add this route for profile update
+// 'profilePhoto' should match the input name in FormData
+router.route("/:id").put(isAuthenticated,upload.single("profilePhoto"), updateUserProfile);
 
 router.route("/register").post(register)
 router.route("/login").post(login)

@@ -17,6 +17,7 @@ import Circles from './components/Circles';
 import { getUserCircles } from './redux/circleThunks';
 import ProtectedRoute from './components/ProtectedRoutes';
 import VerifyOtp from './components/auth/VerifyOtp';
+import Profile from './components/Profile';
 
 const appRouter = createBrowserRouter([
   { path: '/', element: <Home /> },
@@ -31,6 +32,7 @@ const appRouter = createBrowserRouter([
     { path: '/gallery', element: <Gallery /> },
     { path: '/family', element: <Family /> },
     { path: '/memories', element: <Memories /> },
+    { path: '/profile', element: <Profile /> },
     { path: '/circles', element: <Circles /> }, // Corrected path name
     ]
   }

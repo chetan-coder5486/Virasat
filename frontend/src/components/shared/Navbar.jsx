@@ -124,8 +124,9 @@ const Navbar = () => {
                 <div className="flex flex-col my-2 mt-4">
                   <div className="flex w-fit items-center gap-2 cursor-pointer hover:text-green-800">
                     <User2 size={16} />
-                    <Button variant="link" className="p-0 text-green-700 hover:text-green-900">
-                      View Profile
+                    <Button asChild variant="link" className="p-0 text-green-700 hover:text-green-900">
+                      <Link to={"/profile"}> View Profile</Link>
+                     
                     </Button>
                   </div>
                   <div onClick={handleLogout} className="flex w-fit items-center gap-2 cursor-pointer hover:text-green-800">
