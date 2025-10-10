@@ -17,10 +17,9 @@ import { toast } from 'react-hot-toast';
 const Profile = () => {
   const { user } = useSelector((store) => store.auth);
   const dispatch = useDispatch();
-  const [hovered, setHovered] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [preview, setPreview] = useState(user?.profile?.profilePhoto || '');
-  const [dialogOpen, setDialogOpen] = useState(false); // <-- controls dialog
 
   const [formData, setFormData] = useState({
     fullName: user?.fullName || '',
@@ -39,8 +38,6 @@ const Profile = () => {
       </p>
     );
   }
-
-  const headingClass = 'font-bold text-[#8B4513]';
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -71,7 +68,7 @@ const Profile = () => {
       ).unwrap();
 
       toast.success(response.message || 'Profile updated successfully!');
-      setDialogOpen(false); // <-- close dialog after success
+      setDialogOpen(false);
     } catch (err) {
       console.error(err);
       toast.error(err || 'Failed to update profile');
@@ -83,182 +80,194 @@ const Profile = () => {
   return (
     <>
       <Navbar />
-      <div
-        className="min-h-screen flex items-start justify-center p-10"
-        style={{
-          background:
-            'linear-gradient(to bottom right, #f5fbff, #d8f3ff, #d3f8d3)',
-        }}
-      >
-        <div
-          onMouseEnter={() => setHovered(true)}
-          onMouseLeave={() => setHovered(false)}
-          className="shadow-lg rounded-xl flex flex-col md:flex-row w-full max-w-5xl p-8 gap-10 bg-gradient-to-br from-green-100 to-green-200 transition-transform duration-300"
-          style={{
-            transform: hovered
-              ? 'translateY(-5px) scale(1.01)'
-              : 'translateY(0) scale(1)',
-          }}
-        >
-          {/* Profile Image */}
-          <div className="flex-shrink-0 flex justify-center md:justify-start">
-            <Avatar className="w-64 h-64">
-              {preview ? (
-                <AvatarImage src={preview} alt={user.fullName} />
-              ) : (
-                <AvatarFallback className="bg-[#D2B48C] text-[#A0522D] text-5xl font-bold flex items-center justify-center">
-                  {user.fullName
-                    ? user.fullName
-                        .split(' ')
-                        .map((n) => n[0])
-                        .join('')
-                        .toUpperCase()
-                    : 'U'}
-                </AvatarFallback>
-              )}
-            </Avatar>
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-100 to-green-200 flex flex-col items-center py-16 px-4">
+        {/* Profile Card */}
+        <div className="w-full max-w-3xl bg-white shadow-xl rounded-3xl overflow-hidden border border-green-100">
+          {/* Header Section */}
+          <div className="relative bg-gradient-to-r from-green-600 to-emerald-500 h-48">
+            <div className="absolute -bottom-20 left-1/2 transform -translate-x-1/2">
+              {/* Click-to-Enlarge Avatar */}
+              <Dialog>
+                <DialogTrigger asChild>
+                  <div className="relative group cursor-pointer">
+                    <Avatar className="w-60 h-60 border-4 border-white shadow-lg transition-transform duration-300 group-hover:scale-105">
+                      {preview ? (
+                        <AvatarImage src={preview} alt={user.fullName} className="object-cover" />
+                      ) : (
+                        <AvatarFallback className="bg-green-200 text-green-800 text-5xl font-bold">
+                          {user.fullName
+                            ? user.fullName
+                                .split(' ')
+                                .map((n) => n[0])
+                                .join('')
+                                .toUpperCase()
+                            : 'U'}
+                        </AvatarFallback>
+                      )}
+                    </Avatar>
+                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-sm rounded-full transition-opacity duration-300">
+                      Click to enlarge
+                    </div>
+                  </div>
+                </DialogTrigger>
+                <DialogContent className="max-w-3xl p-0 bg-transparent border-none shadow-none flex items-center justify-center">
+                  <img
+                    src={preview || '/placeholder.png'}
+                    alt={user.fullName}
+                    className="rounded-2xl max-h-[80vh] object-contain shadow-2xl"
+                  />
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
 
-          {/* User Details */}
-          <div className="flex-1 flex flex-col gap-4">
-            <h1 className="text-4xl font-semibold text-green-800">
-              {user.fullName}
-            </h1>
-            <p className="text-lg text-green-700">
-              <span className={headingClass}>Email:</span> {user.email}
-            </p>
-            {user.phoneNumber && (
-              <p className="text-lg text-green-700">
-                <span className={headingClass}>Phone:</span> {user.phoneNumber}
-              </p>
-            )}
-            {user.profile?.dob && (
-              <p className="text-lg text-green-700">
-                <span className={headingClass}>Date of Birth:</span>{' '}
-                {new Date(user.profile.dob).toDateString()}
-              </p>
-            )}
-            {user.profile?.gender && (
-              <p className="text-lg text-green-700">
-                <span className={headingClass}>Gender:</span>{' '}
-                {user.profile.gender}
-              </p>
-            )}
-            {user.profile?.location && (
-              <p className="text-lg text-green-700">
-                <span className={headingClass}>Location:</span>{' '}
-                {user.profile.location}
-              </p>
-            )}
+          {/* User Info */}
+          <div className="pt-28 pb-12 px-8 text-center">
+            <h1 className="text-3xl font-bold text-green-800">{user.fullName}</h1>
+            <p className="text-gray-500">{user.email}</p>
+
+            {/* Info Grid */}
+            <div className="grid md:grid-cols-2 gap-4 mt-6 text-left">
+              {user.phoneNumber && (
+                <div>
+                  <p className="text-gray-600 font-semibold">📞 Phone</p>
+                  <p className="text-green-800">{user.phoneNumber}</p>
+                </div>
+              )}
+              {user.profile?.dob && (
+                <div>
+                  <p className="text-gray-600 font-semibold">🎂 Date of Birth</p>
+                  <p className="text-green-800">
+                    {new Date(user.profile.dob).toDateString()}
+                  </p>
+                </div>
+              )}
+              {user.profile?.gender && (
+                <div>
+                  <p className="text-gray-600 font-semibold">⚧ Gender</p>
+                  <p className="text-green-800">{user.profile.gender}</p>
+                </div>
+              )}
+              {user.profile?.location && (
+                <div>
+                  <p className="text-gray-600 font-semibold">📍 Location</p>
+                  <p className="text-green-800">{user.profile.location}</p>
+                </div>
+              )}
+            </div>
+
             {user.profile?.bio && (
-              <p className="text-lg text-green-700">
-                <span className={headingClass}>Bio:</span> {user.profile.bio}
-              </p>
+              <div className="mt-6 w-full text-left col-span-full">
+                <p className="text-gray-600 font-semibold mb-1">💬 Bio</p>
+                <p className="text-green-900 italic">{user.profile.bio}</p>
+              </div>
             )}
 
-            {/* Edit Dialog */}
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="mt-6 bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-xl text-sm inline-flex w-max cursor-pointer">
-                  Edit Profile
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px] rounded-2xl shadow-2xl p-6 border border-green-200 bg-white/100 backdrop-blur-md">
-                <DialogHeader>
-                  <DialogTitle className="text-xl font-semibold text-green-700 cursor-pointer">
+            {/* Edit Profile Button */}
+            <div className="mt-10">
+              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-xl text-sm cursor-pointer shadow-md transition-transform transform hover:scale-105">
                     Edit Profile
-                  </DialogTitle>
-                </DialogHeader>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[500px] rounded-2xl shadow-2xl p-6 border border-green-200 bg-white/100 backdrop-blur-md">
+                  <DialogHeader>
+                    <DialogTitle className="text-xl font-semibold text-green-700">
+                      Edit Profile
+                    </DialogTitle>
+                  </DialogHeader>
 
-                <div className="flex flex-col gap-3 mt-2">
-                  <input
-                    type="text"
-                    name="fullName"
-                    placeholder="Full Name"
-                    value={formData.fullName}
-                    onChange={handleInputChange}
-                    className="border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-green-400"
-                  />
-                  <input
-                    type="text"
-                    name="phoneNumber"
-                    placeholder="Phone Number"
-                    value={formData.phoneNumber}
-                    onChange={handleInputChange}
-                    className="border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-green-400"
-                  />
-                  <input
-                    type="date"
-                    name="dob"
-                    value={formData.dob}
-                    onChange={handleInputChange}
-                    className="border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-green-400"
-                  />
-                  <select
-                    name="gender"
-                    value={formData.gender}
-                    onChange={handleInputChange}
-                    className="border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-green-400 bg-white cursor-pointer"
-                  >
-                    <option value="" disabled>
-                      Select Gender
-                    </option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                  </select>
-                  <input
-                    type="text"
-                    name="location"
-                    placeholder="Location"
-                    value={formData.location}
-                    onChange={handleInputChange}
-                    className="border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-green-400"
-                  />
-                  <textarea
-                    name="bio"
-                    placeholder="Bio"
-                    value={formData.bio}
-                    onChange={handleInputChange}
-                    className="border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-green-400"
-                  />
-
-                  <div className="flex flex-col items-center mt-3">
-                    {preview && (
-                      <img
-                        src={preview}
-                        alt="Preview"
-                        className="w-24 h-24 rounded-full object-cover mb-2 shadow-md"
-                      />
-                    )}
+                  <div className="flex flex-col gap-3 mt-2">
                     <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-green-100 file:text-green-700 hover:file:bg-green-200"
+                      type="text"
+                      name="fullName"
+                      placeholder="Full Name"
+                      value={formData.fullName}
+                      onChange={handleInputChange}
+                      className="border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-green-400"
                     />
-                  </div>
+                    <input
+                      type="text"
+                      name="phoneNumber"
+                      placeholder="Phone Number"
+                      value={formData.phoneNumber}
+                      onChange={handleInputChange}
+                      className="border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-green-400"
+                    />
+                    <input
+                      type="date"
+                      name="dob"
+                      value={formData.dob}
+                      onChange={handleInputChange}
+                      className="border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-green-400"
+                    />
+                    <select
+                      name="gender"
+                      value={formData.gender}
+                      onChange={handleInputChange}
+                      className="border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-green-400 bg-white cursor-pointer"
+                    >
+                      <option value="" disabled>
+                        Select Gender
+                      </option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
+                    <input
+                      type="text"
+                      name="location"
+                      placeholder="Location"
+                      value={formData.location}
+                      onChange={handleInputChange}
+                      className="border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-green-400"
+                    />
+                    <textarea
+                      name="bio"
+                      placeholder="Bio"
+                      value={formData.bio}
+                      onChange={handleInputChange}
+                      className="border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-green-400"
+                    />
 
-                  <div className="flex justify-end mt-4 gap-2">
-                    <DialogClose asChild>
+                    <div className="flex flex-col items-center mt-3">
+                      {preview && (
+                        <img
+                          src={preview}
+                          alt="Preview"
+                          className="w-24 h-24 rounded-full object-cover mb-2 shadow-md"
+                        />
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-green-100 file:text-green-700 hover:file:bg-green-200"
+                      />
+                    </div>
+
+                    <div className="flex justify-end mt-4 gap-2">
+                      <DialogClose asChild>
+                        <Button
+                          className="bg-gray-300 text-gray-800 hover:bg-gray-400 px-4 py-2 rounded-md cursor-pointer"
+                          disabled={loading}
+                        >
+                          Cancel
+                        </Button>
+                      </DialogClose>
                       <Button
-                        className="bg-gray-300 text-gray-800 hover:bg-gray-400 px-4 py-2 rounded-md cursor-pointer"
+                        onClick={handleSaveChanges}
+                        className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-xl text-sm inline-flex w-max cursor-pointer"
                         disabled={loading}
                       >
-                        Cancel
+                        {loading ? 'Saving...' : 'Save Changes'}
                       </Button>
-                    </DialogClose>
-                    <Button
-                      onClick={handleSaveChanges}
-                      className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-xl text-sm inline-flex w-max cursor-pointer"
-                      disabled={loading}
-                    >
-                      {loading ? 'Saving...' : 'Save Changes'}
-                    </Button>
+                    </div>
                   </div>
-                </div>
-              </DialogContent>
-            </Dialog>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
         </div>
       </div>
