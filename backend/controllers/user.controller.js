@@ -109,7 +109,6 @@ export const login = async (req, res) => {
         };
         const token = jwt.sign(tokenData, process.env.JWT_AUTH_KEY, { expiresIn: '1d' });
 
-        const isFamily = !!user.family;
         // FIX: This is the crucial step for persistence. Check if the user has a family.
         const loggedUser = await User.findById(user._id).populate('family');
         const isFamily = loggedUser.family && loggedUser.family.toString().trim() !== "" ? true : false;
