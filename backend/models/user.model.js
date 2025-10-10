@@ -5,7 +5,7 @@ const profileSchema = new mongoose.Schema({
   bio: { type: String, default: "" },
   profilePhoto: { type: String, default: "" }, // Profile photo
   dob: { type: Date, default: null }, // Date of Birth
-  gender: { type: String, enum: ["Male", "Female", "Other"], default: "" },
+  gender: { type: String, enum: ["Male", "Female", "Other"], default: null },
   location: { type: String, default: "" },
   family: { type: mongoose.Schema.Types.ObjectId, ref: "Family", default: null },
 });

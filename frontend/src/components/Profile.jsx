@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,15 +11,16 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import Navbar from './shared/Navbar';
-import { useDispatch } from 'react-redux';
 import { updateUserProfile } from '@/redux/authThunks';
 import { toast } from 'react-hot-toast';
 
 const Profile = () => {
   const { user } = useSelector((store) => store.auth);
+  const dispatch = useDispatch();
   const [hovered, setHovered] = useState(false);
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState(user?.profile?.profilePhoto || '');
+  const [dialogOpen, setDialogOpen] = useState(false); // <-- controls dialog
 
   const [formData, setFormData] = useState({
     fullName: user?.fullName || '',
@@ -50,38 +51,34 @@ const Profile = () => {
     const file = e.target.files[0];
     if (file) {
       const imageUrl = URL.createObjectURL(file);
-      setPreview(imageUrl);
+      //setPreview(imageUrl);
       setFormData((prev) => ({ ...prev, profilePhoto: file }));
     }
   };
 
-  const dispatch = useDispatch();
-
-const handleSaveChanges = async () => {
-  setLoading(true);
-  try {
-    const data = new FormData();
-    // Append only non-null/empty fields
-    for (const key in formData) {
-      if (formData[key] !== null && formData[key] !== '') {
-        data.append(key, formData[key]);
+  const handleSaveChanges = async () => {
+    setLoading(true);
+    try {
+      const data = new FormData();
+      for (const key in formData) {
+        if (formData[key] !== null && formData[key] !== '') {
+          data.append(key, formData[key]);
+        }
       }
+
+      const response = await dispatch(
+        updateUserProfile({ userId: user._id, formData: data })
+      ).unwrap();
+
+      toast.success(response.message || 'Profile updated successfully!');
+      setDialogOpen(false); // <-- close dialog after success
+    } catch (err) {
+      console.error(err);
+      toast.error(err || 'Failed to update profile');
+    } finally {
+      setLoading(false);
     }
-
-    // Dispatch the thunk to update profile
-    const response = await dispatch(
-      updateUserProfile({ userId: user._id, formData: data })
-    ).unwrap();
-
-    // Show success toast
-    toast.success(response.message || 'Profile updated successfully!');
-  } catch (err) {
-    console.error(err);
-    toast.error(err || 'Failed to update profile');
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
     <>
@@ -160,7 +157,7 @@ const handleSaveChanges = async () => {
             )}
 
             {/* Edit Dialog */}
-            <Dialog>
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="mt-6 bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-xl text-sm inline-flex w-max">
                   Edit Profile
@@ -202,14 +199,14 @@ const handleSaveChanges = async () => {
                     value={formData.gender}
                     onChange={handleInputChange}
                     className="border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-green-400 bg-white"
-                    >
+                  >
                     <option value="" disabled>
-                        Select Gender
+                      Select Gender
                     </option>
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
                     <option value="Other">Other</option>
-                    </select>
+                  </select>
                   <input
                     type="text"
                     name="location"
@@ -226,7 +223,6 @@ const handleSaveChanges = async () => {
                     className="border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-green-400"
                   />
 
-                  {/* Profile Photo at Last */}
                   <div className="flex flex-col items-center mt-3">
                     {preview && (
                       <img
