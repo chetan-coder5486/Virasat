@@ -165,7 +165,7 @@ const Profile = () => {
               </DialogTrigger>
               <DialogContent className="sm:max-w-[500px] rounded-2xl shadow-2xl p-6 border border-green-200 bg-white/100 backdrop-blur-md">
                 <DialogHeader>
-                  <DialogTitle className="text-xl font-semibold text-green-700">
+                  <DialogTitle className="text-xl font-semibold text-green-700 cursor-pointer">
                     Edit Profile
                   </DialogTitle>
                 </DialogHeader>

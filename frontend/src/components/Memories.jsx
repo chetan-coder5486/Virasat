@@ -2,7 +2,7 @@ import React from "react";
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSelector, useDispatch } from "react-redux";
-import { Loader2 } from "lucide-react";
+import { Loader2, Play, Pause, ChevronLeft, ChevronRight } from "lucide-react";
 import axios from "axios";
 import { UploadMemoryModal } from "@/components/UploadMemoryModal";
 import { PlusCircle } from "lucide-react";
@@ -55,7 +55,7 @@ const TagAutocomplete = ({ onTagSelect }) => {
   };
 
   return (
-    <div className="relative">
+    <div className="relative z-20">
       <div className="relative">
         <input
           type="text"
@@ -69,7 +69,7 @@ const TagAutocomplete = ({ onTagSelect }) => {
         )}
       </div>
       {suggestions.length > 0 && (
-        <motion.ul className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+        <motion.ul className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-60 overflow-y-auto">
           {suggestions.map((tag) => (
             <li
               key={tag}
@@ -94,9 +94,10 @@ const FilterBar = ({
   filters,
   onFilterChange,
   onTagSelect,
+  members = [],
 }) => (
   <motion.div
-    className="mb-8 p-4 bg-white/60 backdrop-blur-md rounded-xl shadow-md"
+    className="relative z-20 mb-8 p-4 bg-white/60 backdrop-blur-md rounded-xl shadow-md"
     initial={{ opacity: 0, y: -20 }}
     animate={{ opacity: 1, y: 0 }}
   >
@@ -126,9 +127,11 @@ const FilterBar = ({
         className="p-2 border border-rose-200 rounded-lg"
       >
         <option value="all">All Members</option>
-        {/* In a real app, you would fetch a list of members for this dropdown */}
-        <option value="You (User)">You (User)</option>
-        <option value="Sarah Miller">Sarah Miller</option>
+        {members.map((m) => (
+          <option key={m._id} value={m._id}>
+            {m.fullName}
+          </option>
+        ))}
       </select>
       <TagAutocomplete onTagSelect={onTagSelect} />
     </div>
@@ -162,22 +165,36 @@ const MemoryCard = ({ memory, onCardClick }) => {
             className="w-full h-full object-cover"
           />
         ) : (
-          memory.mediaURLs?.[0] &&
-          (memory.mediaURLs[0].type === "video" ? (
-            <video
-              src={memory.mediaURLs[0].url}
-              className="w-full h-full object-cover"
-              muted
-              loop
-              autoPlay
-            />
-          ) : (
-            <img
-              src={memory.mediaURLs[0].url}
-              alt={memory.title}
-              className="w-full h-full object-cover"
-            />
-          ))
+          (() => {
+            const first = memory.mediaURLs?.[0];
+            if (!first) return null;
+            if (first.type === "video") {
+              return (
+                <div className="relative w-full h-full">
+                  <video
+                    src={first.url}
+                    className="w-full h-full object-cover"
+                    muted
+                    playsInline
+                    preload="metadata"
+                    /* Do not autoplay or loop; pause until card click opens modal */
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="bg-black/40 rounded-full p-3">
+                      <Play className="h-8 w-8 text-white" />
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+            return (
+              <img
+                src={first.url}
+                alt={memory.title}
+                className="w-full h-full object-cover"
+              />
+            );
+          })()
         )}
 
         {isProcessing && (
@@ -210,64 +227,180 @@ const MemoryCard = ({ memory, onCardClick }) => {
   );
 };
 
-export const MemoryDetailModal = ({ memory, onClose }) => (
-  <motion.div
-    className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-    initial={{ opacity: 0 }}
-    animate={{ opacity: 1 }}
-    exit={{ opacity: 0 }}
-    onClick={onClose}
-  >
+export const MemoryDetailModal = ({ memory, onClose }) => {
+  const media = Array.isArray(memory.mediaURLs) ? memory.mediaURLs : [];
+  const [index, setIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false); // highlights autoplay for images only
+
+  const hasMultiple = media.length > 1;
+
+  const goPrev = useCallback(() => {
+    if (!media.length) return;
+    setIndex((i) => (i - 1 + media.length) % media.length);
+  }, [media.length]);
+
+  const goNext = useCallback(() => {
+    if (!media.length) return;
+    setIndex((i) => (i + 1) % media.length);
+  }, [media.length]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowLeft") goPrev();
+      if (e.key === "ArrowRight") goNext();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [goPrev, goNext, onClose]);
+
+  // Autoplay highlights for images only
+  useEffect(() => {
+    if (!isPlaying || !media.length) return;
+    const current = media[index];
+    // Only auto-advance for images; videos require user action
+    if (current?.type !== "image") return;
+    const id = setTimeout(goNext, 2500);
+    return () => clearTimeout(id);
+  }, [isPlaying, index, media, goNext]);
+
+  // Ensure index in range when memory changes
+  useEffect(() => {
+    if (index >= media.length) setIndex(0);
+  }, [media.length, index]);
+
+  const current = media[index];
+
+  return (
     <motion.div
-      className="w-full max-w-3xl bg-white rounded-2xl p-6 relative max-h-[90vh] overflow-y-auto"
-      initial={{ scale: 0.8 }}
-      animate={{ scale: 1 }}
-      exit={{ scale: 0.8 }}
-      onClick={(e) => e.stopPropagation()}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
     >
-      <button
-        onClick={onClose}
-        className="absolute top-4 right-4 text-2xl font-bold text-rose-700"
+      <motion.div
+        className="w-full max-w-4xl bg-white rounded-2xl p-6 relative max-h-[90vh] overflow-hidden"
+        initial={{ scale: 0.8 }}
+        animate={{ scale: 1 }}
+        exit={{ scale: 0.8 }}
+        onClick={(e) => e.stopPropagation()}
       >
-        &times;
-      </button>
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-2xl font-bold text-rose-700"
+        >
+          &times;
+        </button>
 
-      <h2 className="text-3xl font-bold font-serif text-rose-800 mb-2">
-        {memory.title}
-      </h2>
-      <p className="text-md text-rose-600 mb-4">
-        {memory.author.fullName} - {new Date(memory.date).toLocaleDateString()}
-      </p>
+        <h2 className="text-3xl font-bold font-serif text-rose-800 mb-2 pr-10">
+          {memory.title}
+        </h2>
+        <p className="text-md text-rose-600 mb-4">
+          {memory.author.fullName} -{" "}
+          {new Date(memory.date).toLocaleDateString()}
+        </p>
 
-      <div className="w-full max-h-96 flex flex-col gap-2 mb-4 overflow-y-auto">
-        {memory.mediaURLs?.map((media, idx) => (
-          <div
-            key={idx}
-            className="w-full flex justify-center items-center bg-gray-100 rounded-lg"
-          >
-            {media.type === "video" ? (
-              <video
-                src={media.url}
-                controls
-                className="max-w-full max-h-96 rounded-lg"
-              />
-            ) : (
-              <img
-                src={media.url}
-                alt={`${memory.title}-${idx}`}
-                className="max-w-full max-h-96 object-contain rounded-lg"
-              />
-            )}
+        {/* Viewer */}
+        <div className="relative w-full aspect-video bg-gray-100 rounded-xl overflow-hidden flex items-center justify-center">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.02 }}
+              transition={{ duration: 0.25 }}
+              className="w-full h-full flex items-center justify-center"
+            >
+              {current?.type === "video" ? (
+                <video
+                  src={current.url}
+                  controls
+                  className="max-w-full max-h-full rounded-lg"
+                  playsInline
+                />
+              ) : current ? (
+                <img
+                  src={current.url}
+                  alt={`${memory.title}-${index}`}
+                  className="max-w-full max-h-full object-contain rounded-lg"
+                />
+              ) : null}
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Prev/Next controls */}
+          {hasMultiple && (
+            <>
+              <button
+                onClick={goPrev}
+                className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/40 text-white hover:bg-black/60"
+                aria-label="Previous"
+              >
+                <ChevronLeft className="h-6 w-6" />
+              </button>
+              <button
+                onClick={goNext}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/40 text-white hover:bg-black/60"
+                aria-label="Next"
+              >
+                <ChevronRight className="h-6 w-6" />
+              </button>
+            </>
+          )}
+
+          {/* Highlights play/pause (images only autoplay) */}
+          {hasMultiple && (
+            <button
+              onClick={() => setIsPlaying((p) => !p)}
+              className="absolute bottom-2 left-2 px-3 py-1.5 rounded-full bg-black/40 text-white hover:bg-black/60 text-sm inline-flex items-center gap-1"
+            >
+              {isPlaying ? (
+                <Pause className="h-4 w-4" />
+              ) : (
+                <Play className="h-4 w-4" />
+              )}
+              {isPlaying ? "Pause" : "Play"}
+            </button>
+          )}
+        </div>
+
+        {/* Thumbnails */}
+        {hasMultiple && (
+          <div className="mt-3 flex gap-2 overflow-x-auto py-1">
+            {media.map((m, i) => (
+              <button
+                key={i}
+                onClick={() => setIndex(i)}
+                className={`relative h-16 w-24 flex-shrink-0 rounded-md overflow-hidden border ${
+                  index === i ? "border-rose-600" : "border-transparent"
+                }`}
+                aria-label={`Go to item ${i + 1}`}
+              >
+                {m.type === "video" ? (
+                  <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                    <Play className="h-6 w-6 text-gray-700" />
+                  </div>
+                ) : (
+                  <img
+                    src={m.url}
+                    alt={`thumb-${i}`}
+                    className="w-full h-full object-cover"
+                  />
+                )}
+              </button>
+            ))}
           </div>
-        ))}
-      </div>
+        )}
 
-      <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-        {memory.story}
-      </p>
+        <p className="mt-4 text-gray-700 leading-relaxed whitespace-pre-wrap">
+          {memory.story}
+        </p>
+      </motion.div>
     </motion.div>
-  </motion.div>
-);
+  );
+};
 
 // ====================================================================
 // 4. Main Archive Page Component
@@ -275,6 +408,9 @@ export const MemoryDetailModal = ({ memory, onClose }) => (
 export default function ArchivePage() {
   const dispatch = useDispatch();
   const { items: memories, loading } = useSelector((state) => state.memories);
+  const members = useSelector(
+    (state) => state.family.familyData?.members || []
+  );
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({
     type: "all",
@@ -286,7 +422,7 @@ export default function ArchivePage() {
 
   useEffect(() => {
     const handler = setTimeout(() => {
-      dispatch(fetchMemories({ searchTerm, filters, circleId: 'null' })); // Adjust circleId as needed
+      dispatch(fetchMemories({ searchTerm, filters, circleId: "null" })); // Adjust circleId as needed
     }, 500);
     return () => clearTimeout(handler);
   }, [searchTerm, filters, dispatch]);
@@ -319,6 +455,7 @@ export default function ArchivePage() {
             setFilters((prev) => ({ ...prev, [e.target.name]: e.target.value }))
           }
           onTagSelect={(tag) => setFilters((prev) => ({ ...prev, tag }))}
+          members={members}
         />
 
         {loading && memories.length === 0 ? (

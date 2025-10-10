@@ -15,7 +15,7 @@ import {
 import axios from "axios";
 import { FAMILY_API_ENDPOINT } from "@/utils/constant";
 import { InviteMemberPopover } from "./InviteMemberPopover";
-
+import { MemoryDetailModal } from "./Memories";
 
 const getRoleIcon = (role) => {
   switch (role) {
@@ -94,7 +94,7 @@ const MemberCard = ({ member, currentUserRole, onCardClick }) => (
   </motion.div>
 );
 
-const MemberDetailSidebar = ({ member, onClose }) => {
+const MemberDetailSidebar = ({ member, onClose, onMemoryClick }) => {
   const [memories, setMemories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -172,7 +172,8 @@ const MemberDetailSidebar = ({ member, onClose }) => {
           {memories.map((mem) => (
             <div
               key={mem._id}
-              className="bg-white p-3 rounded-lg shadow-sm text-left"
+              className="bg-white p-3 rounded-lg shadow-sm text-left cursor-pointer"
+              onClick={() => onMemoryClick && onMemoryClick(mem)}
             >
               <div className="w-full max-h-96 flex flex-col gap-2 mb-4 overflow-y-auto">
                 {mem.mediaURLs?.map((media, idx) => (
@@ -218,8 +219,9 @@ export default function FamilyMembers() {
   const { familyData } = useSelector((state) => state.family);
   const { user: currentUser } = useSelector((state) => state.auth);
 
-  // 3. Add state to manage the selected member for the sidebar
+  // 3. Add state to manage the selected member and selected memory
   const [selectedMember, setSelectedMember] = useState(null);
+  const [selectedMemory, setSelectedMemory] = useState(null);
 
   const currentUserInFamily = familyData?.members?.find(
     (m) => m._id === currentUser._id
@@ -241,13 +243,12 @@ export default function FamilyMembers() {
             Everyone who is a part of the "{familyData?.familyName || "Family"}"
             trunk.
           </p>
-                    {/*  Conditionally render the button based on the user's role */}
-          {currentUserRole === 'Chronicler' && (
+          {/*  Conditionally render the button based on the user's role */}
+          {currentUserRole === "Chronicler" && (
             <div className="text-center md:text-right">
               <InviteMemberPopover />
             </div>
           )}
-
         </motion.div>
 
         <motion.div
@@ -273,6 +274,17 @@ export default function FamilyMembers() {
           <MemberDetailSidebar
             member={selectedMember}
             onClose={() => setSelectedMember(null)}
+            onMemoryClick={setSelectedMemory}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Memory slideshow modal (reuses the shared MemoryDetailModal) */}
+      <AnimatePresence>
+        {selectedMemory && (
+          <MemoryDetailModal
+            memory={selectedMemory}
+            onClose={() => setSelectedMemory(null)}
           />
         )}
       </AnimatePresence>

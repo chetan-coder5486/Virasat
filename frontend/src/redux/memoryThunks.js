@@ -5,22 +5,24 @@ import { toast } from 'react-hot-toast';
 
 
 export const fetchMemories = createAsyncThunk(
-  'memories/fetch',
-  async ({ searchTerm, filters, circleId }, { rejectWithValue }) => {
-    try {
-      const response = await axios.get(`${FAMILY_API_ENDPOINT}/memories`, {
-        params: {
-          search: searchTerm,
-          ...filters,
-          circleId,
-        },
-        withCredentials: true,
-      });
-      return response.data.memories;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || "Failed to fetch memories");
+    'memories/fetch',
+    async ({ searchTerm, filters, circleId }, { rejectWithValue }) => {
+        try {
+            const { member, ...restFilters } = filters || {};
+            const response = await axios.get(`${FAMILY_API_ENDPOINT}/memories`, {
+                params: {
+                    search: searchTerm,
+                    ...restFilters,
+                    ...(member && member !== 'all' ? { member: member } : {}),
+                    circleId,
+                },
+                withCredentials: true,
+            });
+            return response.data.memories;
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.message || "Failed to fetch memories");
+        }
     }
-  }
 );
 
 
