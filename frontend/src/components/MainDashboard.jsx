@@ -6,10 +6,10 @@ import { useNavigate } from "react-router";
 import { CreateCircleModal } from "./CreateCircleModal";
 import { AnimatePresence } from "framer-motion";
 
-// --- (Icons and getFormattedDate function remain the same) ---
-const ClockIcon = () => <span className="text-rose-500">🕒</span>;
-const LightbulbIcon = () => <span className="text-amber-500">💡</span>;
-const UsersIcon = () => <span className="text-sky-500">👨‍👩‍👧‍👦</span>;
+// --- Icons updated with the new color theme ---
+const ClockIcon = () => <span className="text-sky-500">🕒</span>;
+const LightbulbIcon = () => <span className="text-green-500">💡</span>;
+const UsersIcon = () => <span className="text-blue-500">👨‍👩‍👧‍👦</span>;
 const CircleIcon = () => <span className="mr-2">👥</span>;
 
 const getFormattedDate = () => {
@@ -37,25 +37,26 @@ const Dashboard = () => {
   const familyMembers = familyData?.members || [];
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-rose-100 via-pink-50 to-amber-50">
+    <div className="min-h-screen w-full bg-slate-50">
       <Navbar />
 
       <main className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
         <header className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
           <div>
-            <h1 className="text-3xl font-bold font-serif text-rose-800">
+            {/* 2. New Text Colors: Using sky and slate for better contrast */}
+            <h1 className="text-3xl font-bold font-serif text-sky-800">
               Welcome back, {user?.name || "Friend"}!
             </h1>
-            <p className="text-rose-700">
+            <p className="text-slate-600">
               Here's what's happening in your family's haven.
             </p>
           </div>
 
           <div className="flex items-center gap-2">
-            {/* This button now opens the modal */}
+            {/* 3. New Button Colors: A vibrant blue for the primary action */}
             <button
               onClick={() => setIsCircleModalOpen(true)}
-              className="flex items-center justify-center rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2"
+              className="flex items-center justify-center rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
             >
               <CircleIcon />
               Create a Private Circle
@@ -63,13 +64,12 @@ const Dashboard = () => {
           </div>
         </header>
 
-        {/* --- (Dashboard Grid remains the same) --- */}
+        {/* --- Dashboard Grid with updated card styles --- */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
-          {/* "On This Day" Widget */}
-          <section className="lg:col-span-2 lg:row-span-2 rounded-2xl border border-rose-200/50 bg-white/60 p-6 shadow-lg backdrop-blur-md">
+          <section className="lg:col-span-2 lg:row-span-2 rounded-2xl border border-slate-200 bg-white/80 p-6 shadow-lg backdrop-blur-md">
             <div className="flex items-center gap-3 mb-4">
               <ClockIcon />
-              <h2 className="text-xl font-bold text-rose-800">
+              <h2 className="text-xl font-bold text-sky-800">
                 On This Day: {today}
               </h2>
             </div>
@@ -80,7 +80,7 @@ const Dashboard = () => {
                   alt="Family vacation 2018"
                   className="rounded-lg object-cover aspect-video"
                 />
-                <p className="font-semibold text-rose-900">
+                <p className="font-semibold text-sky-800">
                   2018: Beach Trip to Goa
                 </p>
               </div>
@@ -90,7 +90,7 @@ const Dashboard = () => {
                   alt="Grandma's 70th birthday"
                   className="rounded-lg object-cover aspect-video"
                 />
-                <p className="font-semibold text-rose-900">
+                <p className="font-semibold text-sky-800">
                   2015: Grandma's 70th Birthday
                 </p>
               </div>
@@ -98,30 +98,29 @@ const Dashboard = () => {
           </section>
 
           {/* "Memory Prompts" Widget */}
-          <section className="rounded-2xl border border-rose-200/50 bg-white/60 p-6 shadow-lg backdrop-blur-md">
+          <section className="rounded-2xl border border-slate-200 bg-white/80 p-6 shadow-lg backdrop-blur-md">
             <div className="flex items-center gap-3 mb-4">
               <LightbulbIcon />
-              <h2 className="text-xl font-bold text-rose-800">Story Prompt</h2>
+              <h2 className="text-xl font-bold text-sky-800">Story Prompt</h2>
             </div>
             <div className="space-y-4">
-              <p className="text-lg font-serif italic text-rose-900">
+              <p className="text-lg font-serif italic text-slate-800">
                 "What was the best advice your grandmother gave you?"
               </p>
-              <button className="w-full rounded-lg bg-rose-100 py-2 text-rose-800 transition hover:bg-rose-200">
+              <button className="w-full rounded-lg bg-sky-100 py-2 text-sky-800 transition hover:bg-sky-200">
                 Share Your Story
               </button>
             </div>
           </section>
 
-          {/* "Recent Activity" Widget */}
-          <section className="rounded-2xl border border-rose-200/50 bg-white/60 p-6 shadow-lg backdrop-blur-md">
+          <section className="rounded-2xl border border-slate-200 bg-white/80 p-6 shadow-lg backdrop-blur-md">
             <div className="flex items-center gap-3 mb-4">
               <UsersIcon />
-              <h2 className="text-xl font-bold text-rose-800">
+              <h2 className="text-xl font-bold text-sky-800">
                 Recent Activity
               </h2>
             </div>
-            <ul className="space-y-3 text-sm text-rose-900">
+            <ul className="space-y-3 text-sm text-slate-700">
               <li className="flex items-center gap-2">
                 <span className="font-semibold">Aunt Carol</span> added 5 photos
                 to "Summer BBQ 2024".
