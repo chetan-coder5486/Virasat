@@ -1,1 +1,86 @@
 @import "tailwindcss";
+
+/* ------------------------------------------------------------
+	 Theme overrides: remap rose/pink/amber utilities to white/blue/green
+	 NOTE: We are not changing JSX; we override classes here instead.
+	 This file loads after Tailwind so these rules take precedence.
+------------------------------------------------------------- */
+
+/* Text colors (rose -> blue) */
+.text-rose-900 { color: #1e3a8a !important; } /* blue-900 */
+.text-rose-800 { color: #1e40af !important; } /* blue-800 */
+.text-rose-700 { color: #1d4ed8 !important; } /* blue-700 */
+.text-rose-600 { color: #2563eb !important; } /* blue-600 */
+.text-rose-500 { color: #3b82f6 !important; } /* blue-500 */
+.text-rose-400 { color: #60a5fa !important; } /* blue-400 */
+.text-rose-300 { color: #93c5fd !important; } /* blue-300 */
+
+/* Background colors (rose -> blue; tags use green) */
+.bg-rose-700 { background-color: #1d4ed8 !important; } /* blue-700 */
+.bg-rose-600 { background-color: #2563eb !important; } /* blue-600 */
+.bg-rose-500 { background-color: #3b82f6 !important; } /* blue-500 */
+.bg-rose-400 { background-color: #60a5fa !important; } /* blue-400 */
+.bg-rose-200 { background-color: #bfdbfe !important; } /* blue-200 */
+.bg-rose-100 { background-color: #dbeafe !important; } /* blue-100 */
+.bg-rose-50 { background-color: #eff6ff !important; } /* blue-50 */
+/* Opacity variants used in auth screens */
+.bg-rose-50\/80 { background-color: rgba(239, 246, 255, 0.8) !important; }
+
+/* Hover states */
+.hover\:bg-rose-700:hover { background-color: #1d4ed8 !important; } /* blue-700 */
+.hover\:bg-rose-50:hover { background-color: #eff6ff !important; } /* blue-50 */
+
+/* Borders (rose -> blue) */
+.border-rose-300 { border-color: #93c5fd !important; } /* blue-300 */
+.border-rose-200 { border-color: #bfdbfe !important; } /* blue-200 */
+.border-rose-100 { border-color: #dbeafe !important; } /* blue-100 */
+.border-rose-200\/50 { border-color: rgba(191, 219, 254, 0.5) !important; }
+
+/* Focus rings and borders (rose -> blue) */
+.focus\:ring-rose-500:focus { --tw-ring-color: #3b82f6 !important; }
+.focus\:ring-rose-400:focus { --tw-ring-color: #60a5fa !important; }
+.focus\:border-rose-500:focus { border-color: #3b82f6 !important; }
+
+/* Tag chips seen in Memories: keep tags green for the white/blue/green theme */
+.bg-rose-100.text-rose-800 { background-color: #dcfce7 !important; color: #166534 !important; } /* green-100/bg + green-800 text */
+
+/* Gradient overrides: from rose/pink/amber -> white/blue/green */
+.bg-gradient-to-br.from-rose-100.via-pink-50.to-amber-50 {
+	background-image: linear-gradient(to bottom right, #ffffff, #eff6ff, #f0fdf4) !important;
+}
+/* Also override variant using from-rose-50 */
+.bg-gradient-to-br.from-rose-50.via-pink-50.to-amber-50 {
+	background-image: linear-gradient(to bottom right, #ffffff, #eff6ff, #f0fdf4) !important;
+}
+
+/* Generic gradient stop overrides (Tailwind gradient utilities) */
+.from-rose-100 {
+	--tw-gradient-from: #ffffff !important; /* white */
+	--tw-gradient-to: rgb(255 255 255 / 0) !important;
+	--tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+.via-pink-50 {
+	--tw-gradient-stops: var(--tw-gradient-from), #eff6ff, var(--tw-gradient-to) !important; /* blue-50 */
+}
+.via-rose-50 {
+	--tw-gradient-stops: var(--tw-gradient-from), #eff6ff, var(--tw-gradient-to) !important; /* treat rose-50 as blue-50 */
+}
+.to-amber-50 { --tw-gradient-to: #f0fdf4 !important; } /* green-50 */
+/* Add from-rose-50 mapping to white */
+.from-rose-50 {
+	--tw-gradient-from: #ffffff !important; /* white */
+	--tw-gradient-to: rgb(255 255 255 / 0) !important;
+	--tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+/* Amber to green (icons/badges) */
+.text-amber-500 { color: #22c55e !important; } /* green-500 */
+
+/* Misc utility remaps often used in components */
+.text-rose-700 { color: #1d4ed8 !important; }
+.text-rose-800 { color: #1e40af !important; }
+.text-rose-600 { color: #2563eb !important; }
+.text-rose-700\/90 { color: rgba(29, 78, 216, 0.9) !important; }
+
+/* Shadow color remaps */
+.shadow-rose-500\/20 { --tw-shadow-color: rgba(59, 130, 246, 0.2) !important; }

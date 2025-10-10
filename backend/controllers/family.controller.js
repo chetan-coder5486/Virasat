@@ -462,3 +462,61 @@ export const getTagSuggestions = async (req, res) => {
     }
 };
 
+export const getPdfExport = async (req, res) => {
+    try {
+        const user = req.user;
+        const family = await Family.findById(user.family);
+
+        // 1. Fetch all memories for the family, sorted by date
+        const memories = await Memory.find({ family: user.family, status: 'completed' })
+            .populate('author', 'fullName')
+            .sort({ date: 'asc' });
+
+        if (!memories || memories.length === 0) {
+            return res.status(404).json({ message: "No memories to export." });
+        }
+
+        // 2. Create a new PDF document
+        const doc = new jsPDF();
+        let yPosition = 20; // Vertical position on the page
+
+        // Add a title
+        doc.setFontSize(22);
+        doc.text(`The ${family.familyName} Family Trunk`, 105, yPosition, { align: 'center' });
+        yPosition += 20;
+
+        // 3. Loop through memories and add them to the PDF
+        memories.forEach(memory => {
+            if (yPosition > 270) { // Check if we need a new page
+                doc.addPage();
+                yPosition = 20;
+            }
+
+            doc.setFontSize(16);
+            doc.setFont(undefined, 'bold');
+            doc.text(memory.title, 15, yPosition);
+            yPosition += 7;
+
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            const memoryDate = new Date(memory.date).toLocaleDateString();
+            doc.text(`By ${memory.author.fullName} on ${memoryDate}`, 15, yPosition);
+            yPosition += 10;
+
+            doc.setFontSize(12);
+            const storyLines = doc.splitTextToSize(memory.story || 'No story written.', 180);
+            doc.text(storyLines, 15, yPosition);
+            yPosition += (storyLines.length * 5) + 15; // Move down based on text length
+        });
+
+        // 4. Send the PDF file as a response
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${family.familyName}_Trunk.pdf"`);
+        res.send(doc.output());
+
+    } catch (error) {
+        console.error("Error exporting PDF:", error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+
+}
