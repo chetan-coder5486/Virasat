@@ -53,7 +53,7 @@ export const register = async (req, res) => {
             text: `Welcome! Your One-Time Password (OTP) is: ${verificationCode}\nIt will expire in 10 minutes.`
         };
 
-        await transporter.sendMail(mailOptions);
+        transporter.sendMail(mailOptions);
 
         return res.status(201).json({
             message: "Account created successfully. Please check your email for the OTP.",

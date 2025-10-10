@@ -15,6 +15,7 @@ html, body, #root {
 .timeline-container {
   position: relative;
   width: 100%;
+  min-height: 100vh;
   padding: 80px 0;
   overflow: hidden;
   background: transparent; /* Let the global gradient show through */
