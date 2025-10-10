@@ -1,10 +1,10 @@
-import React from 'react';
-import  { useState, useEffect, useCallback } from "react";
+import React from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSelector, useDispatch } from "react-redux";
 import { Loader2 } from "lucide-react";
 import axios from "axios";
-import { UploadMemoryModal } from '@/components/UploadMemoryModal';
+import { UploadMemoryModal } from "@/components/UploadMemoryModal";
 import { PlusCircle } from "lucide-react";
 import { fetchMemories } from "@/redux/memoryThunks"; // Your Redux thunk
 import { FAMILY_API_ENDPOINT } from "@/utils/constant";
@@ -140,7 +140,7 @@ const FilterBar = ({
 // ====================================================================
 
 const MemoryCard = ({ memory, onCardClick }) => {
-  const isProcessing = memory.status === 'processing';
+  const isProcessing = memory.status === "processing";
 
   return (
     <motion.div
@@ -150,7 +150,7 @@ const MemoryCard = ({ memory, onCardClick }) => {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
       className={`bg-white rounded-lg shadow-lg overflow-hidden h-full flex flex-col ${
-        isProcessing ? 'cursor-not-allowed filter grayscale' : 'cursor-pointer'
+        isProcessing ? "cursor-not-allowed filter grayscale" : "cursor-pointer"
       }`}
       onClick={() => !isProcessing && onCardClick(memory)}
     >
@@ -162,23 +162,22 @@ const MemoryCard = ({ memory, onCardClick }) => {
             className="w-full h-full object-cover"
           />
         ) : (
-          memory.mediaURLs?.[0] && (
-            memory.mediaURLs[0].type === 'video' ? (
-              <video
-                src={memory.mediaURLs[0].url}
-                className="w-full h-full object-cover"
-                muted
-                loop
-                autoPlay
-              />
-            ) : (
-              <img
-                src={memory.mediaURLs[0].url}
-                alt={memory.title}
-                className="w-full h-full object-cover"
-              />
-            )
-          )
+          memory.mediaURLs?.[0] &&
+          (memory.mediaURLs[0].type === "video" ? (
+            <video
+              src={memory.mediaURLs[0].url}
+              className="w-full h-full object-cover"
+              muted
+              loop
+              autoPlay
+            />
+          ) : (
+            <img
+              src={memory.mediaURLs[0].url}
+              alt={memory.title}
+              className="w-full h-full object-cover"
+            />
+          ))
         )}
 
         {isProcessing && (
@@ -189,13 +188,19 @@ const MemoryCard = ({ memory, onCardClick }) => {
       </div>
 
       <div className="p-4 flex flex-col flex-grow">
-        <h3 className="text-lg font-bold font-serif text-rose-800">{memory.title}</h3>
+        <h3 className="text-lg font-bold font-serif text-rose-800">
+          {memory.title}
+        </h3>
         <p className="text-sm text-rose-600">
-          {memory.author?.fullName || '...'} - {new Date(memory.date).toLocaleDateString()}
+          {memory.author?.fullName || "..."} -{" "}
+          {new Date(memory.date).toLocaleDateString()}
         </p>
         <div className="mt-2 flex flex-wrap gap-1 pt-2 border-t border-rose-100 flex-grow content-start">
           {memory.tags?.map((tag) => (
-            <span key={tag} className="text-xs bg-rose-100 text-rose-800 px-2 py-1 rounded-full">
+            <span
+              key={tag}
+              className="text-xs bg-rose-100 text-rose-800 px-2 py-1 rounded-full"
+            >
               {tag}
             </span>
           ))}
@@ -204,9 +209,6 @@ const MemoryCard = ({ memory, onCardClick }) => {
     </motion.div>
   );
 };
-
-
-
 
 export const MemoryDetailModal = ({ memory, onClose }) => (
   <motion.div
@@ -230,15 +232,20 @@ export const MemoryDetailModal = ({ memory, onClose }) => (
         &times;
       </button>
 
-      <h2 className="text-3xl font-bold font-serif text-rose-800 mb-2">{memory.title}</h2>
+      <h2 className="text-3xl font-bold font-serif text-rose-800 mb-2">
+        {memory.title}
+      </h2>
       <p className="text-md text-rose-600 mb-4">
         {memory.author.fullName} - {new Date(memory.date).toLocaleDateString()}
       </p>
 
       <div className="w-full max-h-96 flex flex-col gap-2 mb-4 overflow-y-auto">
         {memory.mediaURLs?.map((media, idx) => (
-          <div key={idx} className="w-full flex justify-center items-center bg-gray-100 rounded-lg">
-            {media.type === 'video' ? (
+          <div
+            key={idx}
+            className="w-full flex justify-center items-center bg-gray-100 rounded-lg"
+          >
+            {media.type === "video" ? (
               <video
                 src={media.url}
                 controls
@@ -255,11 +262,12 @@ export const MemoryDetailModal = ({ memory, onClose }) => (
         ))}
       </div>
 
-      <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{memory.story}</p>
+      <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+        {memory.story}
+      </p>
     </motion.div>
   </motion.div>
 );
-
 
 // ====================================================================
 // 4. Main Archive Page Component
@@ -268,13 +276,17 @@ export default function ArchivePage() {
   const dispatch = useDispatch();
   const { items: memories, loading } = useSelector((state) => state.memories);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filters, setFilters] = useState({ type: "all", member: "all", tag: "all" });
+  const [filters, setFilters] = useState({
+    type: "all",
+    member: "all",
+    tag: "all",
+  });
   const [selectedMemory, setSelectedMemory] = useState(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   useEffect(() => {
     const handler = setTimeout(() => {
-      dispatch(fetchMemories({ searchTerm, filters }));
+      dispatch(fetchMemories({ searchTerm, filters, circleId: 'null' })); // Adjust circleId as needed
     }, 500);
     return () => clearTimeout(handler);
   }, [searchTerm, filters, dispatch]);
@@ -285,7 +297,9 @@ export default function ArchivePage() {
       <main className="container mx-auto p-4 sm:p-6 lg:p-8">
         {/* FIX 1: Add a persistent "Add Memory" button */}
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-4xl font-bold font-serif text-rose-800">The Archive</h1>
+          <h1 className="text-4xl font-bold font-serif text-rose-800">
+            The Archive
+          </h1>
           <motion.button
             onClick={() => setIsUploadModalOpen(true)}
             className="inline-flex items-center gap-2 rounded-xl bg-rose-600 px-4 py-2 text-md font-medium text-white shadow-lg transition-colors duration-300 hover:bg-rose-700 cursor-pointer"
@@ -301,7 +315,9 @@ export default function ArchivePage() {
           searchTerm={searchTerm}
           onSearchChange={(e) => setSearchTerm(e.target.value)}
           filters={filters}
-          onFilterChange={(e) => setFilters((prev) => ({ ...prev, [e.target.name]: e.target.value }))}
+          onFilterChange={(e) =>
+            setFilters((prev) => ({ ...prev, [e.target.name]: e.target.value }))
+          }
           onTagSelect={(tag) => setFilters((prev) => ({ ...prev, tag }))}
         />
 
@@ -311,19 +327,29 @@ export default function ArchivePage() {
           </div>
         ) : (
           <>
-            <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <motion.div
+              layout
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+            >
               <AnimatePresence>
                 {memories.map((memory) => (
-                  <MemoryCard key={memory._id} memory={memory} onCardClick={setSelectedMemory} />
+                  <MemoryCard
+                    key={memory._id}
+                    memory={memory}
+                    onCardClick={setSelectedMemory}
+                  />
                 ))}
               </AnimatePresence>
             </motion.div>
 
             {!loading && memories.length === 0 && (
               <div className="text-center mt-16">
-                <h3 className="text-2xl font-semibold text-rose-800">Your Archive is Empty</h3>
+                <h3 className="text-2xl font-semibold text-rose-800">
+                  Your Archive is Empty
+                </h3>
                 <p className="text-rose-600 mt-2 mb-6">
-                  Start preserving your family's history by adding your first memory.
+                  Start preserving your family's history by adding your first
+                  memory.
                 </p>
                 {/* The main button is now in the header, so this is a simplified CTA */}
                 <motion.button
@@ -341,10 +367,17 @@ export default function ArchivePage() {
 
       {/* FIX 2: Move modal presence checks to the top level */}
       <AnimatePresence>
-        {isUploadModalOpen && <UploadMemoryModal onClose={() => setIsUploadModalOpen(false)} />}
+        {isUploadModalOpen && (
+          <UploadMemoryModal onClose={() => setIsUploadModalOpen(false)} />
+        )}
       </AnimatePresence>
       <AnimatePresence>
-        {selectedMemory && <MemoryDetailModal memory={selectedMemory} onClose={() => setSelectedMemory(null)} />}
+        {selectedMemory && (
+          <MemoryDetailModal
+            memory={selectedMemory}
+            onClose={() => setSelectedMemory(null)}
+          />
+        )}
       </AnimatePresence>
     </div>
   );

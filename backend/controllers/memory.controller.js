@@ -2,6 +2,7 @@ import cloudinary from "../utils/cloudinary.js";
 import streamifier from "streamifier";
 import { Memory } from "../models/memory.model.js";
 import { User } from "../models/user.model.js";
+import { Circle } from "../models/circle.model.js";
 
 // 🔹 Basic upload to Cloudinary (no retry)
 const uploadToCloudinary = (file, folder) => {
@@ -25,7 +26,7 @@ export const createMemory = async (req, res) => {
     let newMemory;
 
     try {
-        const { title, story, date, tags } = req.body;
+        const { title, story, date, tags, circleId } = req.body;
         const files = req.files;
         const userId = req.id;
 
@@ -49,9 +50,18 @@ export const createMemory = async (req, res) => {
             date,
             tags: tags ? tags.split(",").map((t) => t.trim()) : [],
             type: "mixed",
+            circleId: circleId ? circleId : null,
             mediaURLs: [], // store array of { url, type }
             status: "processing",
         });
+
+        if (circleId) {
+            let circle = await Circle.findById(circleId);
+            if (circle) {
+                circle.memories.push(newMemory._id);
+                await circle.save();
+            }
+        }
 
         // 2️⃣ Send immediate response
         res.status(201).json({

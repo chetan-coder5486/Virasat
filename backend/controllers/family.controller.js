@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import transporter from '../config/mailer.js'; // Import the transporter
 import dotenv from 'dotenv';
 import { Memory } from '../models/memory.model.js';
+import mongoose from 'mongoose';
 dotenv.config();
 
 
@@ -338,28 +339,28 @@ export const getMemories = async (req, res) => {
         // Get the optional circleId from the query
         const { search, type, member, tag, circleId } = req.query;
         let query = { family: user.family };
+        console.log("Circle ID:", circleId);
 
-        // --- THIS IS THE NEW PART ---
-        if (circleId) {
-            // If a circleId is provided, find memories in that circle
-            query.circle = circleId;
+           // FIX: Simplified and more robust logic for handling circleId
+        if (circleId && circleId !== 'null') {
+            // If a specific circleId is provided, filter for it
+            query.circleId = circleId;
         } else {
-            // If not, only show memories that are NOT in a circle (for the main archive)
-            query.circle = null;
+            // Otherwise, fetch memories that are NOT in any circle (for the main archive)
+            query.circleId = null;
         }
-
         // 3. Dynamically add filters to the query if they exist
         if (type && type !== 'all') {
             query.type = type;
         }
         if (member && member !== 'all') {
             // This assumes taggedMembers stores member names.
-            query.taggedMembers = member;
+            query.memberId = member;
         }
         if (tag && tag !== 'all') {
             query.tags = tag;
         }
-
+        console.log("Circle ID in query:", query.circle);
         // 4. Add the search term to the query using a case-insensitive regex
         if (search) {
             const searchRegex = new RegExp(search, 'i');

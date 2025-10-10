@@ -15,11 +15,11 @@ const circleSchema = new mongoose.Schema({
         ref:"User",
         default:[]
     }],
-    memory:{
-        type: [mongoose.Schema.Types.ObjectId],
+    memories:[{
+        type: mongoose.Schema.Types.ObjectId,
         ref:"Memory",
         default:[]
-    }
+    }]
 },{timestamps:true});
 
 export const Circle = mongoose.model("Circle",circleSchema)
