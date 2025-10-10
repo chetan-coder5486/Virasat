@@ -6,7 +6,6 @@ import dotenv from "dotenv"; // <-- FIX #1: Import dotenv
 import connectDb from "./utils/db.js";
 import userRoute from "./routes/user.route.js";
 import familyRoute from "./routes/family.route.js";
-
 // Load environment variables from .env file
 dotenv.config();
 
@@ -38,7 +37,6 @@ const PORT = process.env.PORT || 3000;
 //apis
 app.use("/api/v1/user", userRoute);
 app.use("/api/v1/family", familyRoute); 
-
 
 app.listen(PORT, () => {
     connectDb()
