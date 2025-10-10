@@ -265,7 +265,6 @@ export const resendOTP = async (req, res) => {
         });
     }
 };
-};
 
 export const updateUserProfile = async (req, res) => {
   try {
