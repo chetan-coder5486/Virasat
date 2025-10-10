@@ -103,7 +103,7 @@ const Login = () => {
               </div>
 
               {/* FIX 3: Disable button based on loading state from Redux */}
-              <button type="submit" disabled={isLoading} className="...">
+              <button type="submit" disabled={isLoading} className="... cursor-pointer">
                 {isLoading ? "Please wait..." : "Log In"}
               </button>
             </form>
