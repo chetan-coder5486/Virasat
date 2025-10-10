@@ -27,7 +27,7 @@ const CircleListItem = ({ circle, isSelected, onSelect }) => {
       exit={{ opacity: 0 }}
       onClick={() => dispatch(setActiveCircleId(circle._id))}
       className={`flex items-center p-3 space-x-3 rounded-lg cursor-pointer transition-colors ${
-        isSelected ? "bg-rose-200/60" : "hover:bg-rose-100/50"
+        isSelected ? "bg-green-200/60" : "hover:bg-green-100/50"
       }`}
       whileTap={{ scale: 0.98 }}
     >
@@ -60,11 +60,58 @@ const CircleMemoryCard = ({ memory, onCardClick }) => (
     onClick={() => onCardClick(memory)}
     className="bg-white/80 rounded-lg shadow-md overflow-hidden cursor-pointer"
   >
-    <img
-      src={memory.mediaUrl}
-      alt={memory.title}
-      className="w-full h-40 object-cover"
-    />
+    <div className="relative w-full h-40 overflow-hidden">
+      {(() => {
+        // Support both memory.mediaURLs (array) and legacy memory.mediaUrl (string)
+        const first = Array.isArray(memory.mediaURLs)
+          ? memory.mediaURLs[0]
+          : memory.mediaUrl
+          ? {
+              url: memory.mediaUrl,
+              type:
+                memory.mediaUrl.endsWith(".mp4") ||
+                memory.mediaUrl.endsWith(".webm")
+                  ? "video"
+                  : "image",
+            }
+          : null;
+        if (!first) return null;
+        if (first.type === "video") {
+          return (
+            <div className="relative w-full h-full">
+              <video
+                src={first.url}
+                className="w-full h-full object-cover"
+                muted
+                playsInline
+                preload="metadata"
+              />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="bg-black/40 rounded-full p-2">
+                  {/* simple play triangle */}
+                  <svg
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path d="M8 5v14l11-7-11-7z" fill="#fff" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          );
+        }
+        return (
+          <img
+            src={first.url}
+            alt={memory.title}
+            className="w-full h-full object-cover"
+          />
+        );
+      })()}
+    </div>
     <div className="p-3">
       <h4 className="font-semibold font-serif text-rose-800 truncate">
         {memory.title}

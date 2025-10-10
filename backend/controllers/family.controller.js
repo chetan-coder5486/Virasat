@@ -341,7 +341,7 @@ export const getMemories = async (req, res) => {
         let query = { family: user.family };
         console.log("Circle ID:", circleId);
 
-           // FIX: Simplified and more robust logic for handling circleId
+        // FIX: Simplified and more robust logic for handling circleId
         if (circleId && circleId !== 'null') {
             // If a specific circleId is provided, filter for it
             query.circleId = circleId;
@@ -354,8 +354,8 @@ export const getMemories = async (req, res) => {
             query.type = type;
         }
         if (member && member !== 'all') {
-            // This assumes taggedMembers stores member names.
-            query.memberId = member;
+            // Filter by author ObjectId (member id)
+            query.author = member;
         }
         if (tag && tag !== 'all') {
             query.tags = tag;
@@ -388,34 +388,34 @@ export const getMemories = async (req, res) => {
 
 
 export const getMemoriesByUser = async (req, res) => {
-  try {
-    const userId = req.params.id;
+    try {
+        const userId = req.params.id;
 
-    // Validate the ID format first (to avoid CastError)
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid user ID",
-      });
+        // Validate the ID format first (to avoid CastError)
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid user ID",
+            });
+        }
+
+        // Find all memories authored by this user
+        const memories = await Memory.find({ author: userId })
+            .populate("author", "fullName email")   // populate author details if needed
+            .sort({ date: -1 });                    // sort by latest first
+
+        return res.status(200).json({
+            success: true,
+            count: memories.length,
+            memories,
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error",
+        });
     }
-
-    // Find all memories authored by this user
-    const memories = await Memory.find({ author: userId })
-      .populate("author", "fullName email")   // populate author details if needed
-      .sort({ date: -1 });                    // sort by latest first
-
-    return res.status(200).json({
-      success: true,
-      count: memories.length,
-      memories,
-    });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-    });
-  }
 };
 
 //For autocomplete tags
