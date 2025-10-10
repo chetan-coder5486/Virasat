@@ -302,7 +302,7 @@ export default function ArchivePage() {
           </h1>
           <motion.button
             onClick={() => setIsUploadModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl bg-rose-600 px-4 py-2 text-md font-medium text-white shadow-lg transition-colors duration-300 hover:bg-rose-700"
+            className="inline-flex items-center gap-2 rounded-xl bg-rose-600 px-4 py-2 text-md font-medium text-white shadow-lg transition-colors duration-300 hover:bg-rose-700 cursor-pointer"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.98 }}
           >
