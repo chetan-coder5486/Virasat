@@ -32,7 +32,7 @@ const Signup = () => {
         withCredentials: true,
       });
       if (res.data.success) {
-        navigate("/login");
+        navigate("/verify-otp"); // Redirect to VerifyOtp page after successful signup
         toast.success(res.data.message);
         // Good Practice: Reset form fields after successful submission
         setInput({
