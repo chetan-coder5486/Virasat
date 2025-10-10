@@ -30,7 +30,7 @@ export function InviteMemberPopover() {
 
       toast.success(response.data.message);
       setEmail('');
-      setOpen(false); // Close the popover on success
+      setOpen(false);
     } catch (error) {
       const message = error.response?.data?.message || 'Failed to send invite.';
       toast.error(message);
@@ -41,38 +41,39 @@ export function InviteMemberPopover() {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      {/* FIX: Added the PopoverTrigger to open the popover */}
       <PopoverTrigger asChild>
-        <Button className="bg-rose-600 hover:bg-rose-700 text-white">
+        <Button className="bg-green-600 hover:bg-green-700 text-white cursor-pointer">
           <UserPlus className="mr-2 h-4 w-4" /> Invite Member
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent className="w-80 bg-white border-rose-200">
+      <PopoverContent className="w-80 bg-green-50 border border-green-300">
         <form onSubmit={handleSendInvite}>
           <div className="grid gap-4">
             <div className="space-y-2">
-              <h4 className="font-medium leading-none text-rose-800">Invite a New Member</h4>
-              <p className="text-sm text-rose-600">
+              <h4 className="font-medium leading-none text-green-900">
+                Invite a New Member
+              </h4>
+              <p className="text-sm text-green-700">
                 Enter the email address of the person you want to invite to your family trunk.
               </p>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="email" className="text-rose-900">Email</Label>
+              <Label htmlFor="email" className="text-green-900">Email</Label>
               <Input
                 id="email"
                 type="email"
                 placeholder="name@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="border-rose-300 focus-visible:ring-green-500"
+                className="border-green-300 focus-visible:ring-green-500"
                 required
               />
             </div>
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-green-600 hover:bg-green-700 text-white"
+              className="w-full bg-green-600 hover:bg-green-700 text-white cursor-pointer"
             >
               {isLoading ? (
                 <>
