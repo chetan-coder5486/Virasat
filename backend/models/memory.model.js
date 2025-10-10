@@ -56,11 +56,11 @@ const memorySchema = new mongoose.Schema({
         enum: ['processing', 'completed', 'failed'],
         default: 'processing'
     },
-    circleId: [{
+    circleId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Memory",
-        default: []
-    }]
+        default: undefined
+    }
 }, { timestamps: true });
 
 export const Memory = mongoose.model("Memory", memorySchema);

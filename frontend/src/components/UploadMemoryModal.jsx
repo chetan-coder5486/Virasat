@@ -17,6 +17,7 @@ export const UploadMemoryModal = ({ onClose, circleId = null }) => {
     story: '',
     date: '',
     tags: '',
+    circleId: [],
     memoryFiles: [], // 🔹 Store multiple files
   });
 
@@ -44,13 +45,13 @@ export const UploadMemoryModal = ({ onClose, circleId = null }) => {
     data.append('story', formData.story);
     data.append('date', formData.date);
     data.append('tags', formData.tags);
+    if (circleId) {
+      data.append('circleId', circleId);
+    }
 
     // 🔹 Append all selected files
     formData.memoryFiles.forEach((file) => {
       data.append('memoryFiles', file);
-        if (circleId) {
-            data.append('circleId', circleId);
-        }
     });
 
     try {
