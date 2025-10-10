@@ -141,7 +141,7 @@ const Navbar = () => {
                     <LogOut size={16} />
                     <Button
                       variant="link"
-                      className="p-0 text-slate-600 hover:text-sky-800"
+                      className="p-0 text-slate-600 hover:text-sky-800 cursor-pointer"
                     >
                       Logout
                     </Button>

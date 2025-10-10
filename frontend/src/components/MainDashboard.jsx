@@ -86,7 +86,7 @@ const Dashboard = () => {
             {/* 3. New Button Colors: A vibrant blue for the primary action */}
             <button
               onClick={() => setIsCircleModalOpen(true)}
-              className="flex items-center justify-center rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
+              className="flex items-center justify-center rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 cursor-pointer"
             >
               <CircleIcon />
               Create a Private Circle
@@ -144,7 +144,7 @@ const Dashboard = () => {
               <p className="text-lg font-serif italic text-slate-800">
                 "What was the best advice your grandmother gave you?"
               </p>
-              <button className="w-full rounded-lg bg-sky-100 py-2 text-sky-800 transition hover:bg-sky-200">
+              <button className="w-full rounded-lg bg-sky-100 py-2 text-sky-800 transition hover:bg-sky-200 cursor-pointer">
                 Share Your Story
               </button>
             </div>
