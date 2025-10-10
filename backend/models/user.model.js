@@ -19,6 +19,16 @@ const userSchema = new mongoose.Schema(
     role: { type: String, enum: ["Chronicler", "Contributor", "Viewer"], default: "Viewer", required: true },
     family: { type: mongoose.Schema.Types.ObjectId, ref: "Family", default: null },
     circleId: [{ type: mongoose.Schema.Types.ObjectId, ref: "Circle", default: [] }],
+     isVerified:{
+        type:Boolean,
+        default:false,
+    },
+    otp:{
+        type:String,
+    },
+    otpExpiry:{
+        type:Date,
+    },
     profile: { type: profileSchema, default: () => ({}) }, // ensures profile object always exists
   },
   { timestamps: true }

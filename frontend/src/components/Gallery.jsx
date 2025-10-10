@@ -1,51 +1,24 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useDispatch, useSelector } from "react-redux"; // Import Redux hooks
+import { fetchTimelineEvents } from "../redux/timelineThunks"; // Import the new thunk
 import "./Gallery.css";
 import Navbar from "./shared/Navbar";
 import TreeBranch from "./ui/TreeBranch";
-
-// Sample data with more details for the modal
-const initialEvents = [
-  {
-    id: 1,
-    title: "Grandma Clara Born",
-    icon: "🎂",
-    year: "1950",
-    description: "The matriarch of our family begins her journey.",
-  },
-  {
-    id: 2,
-    title: "Parents' Wedding",
-    icon: "💍",
-    year: "1985",
-    description: "A beautiful union that started a new chapter.",
-  },
-  {
-    id: 3,
-    title: "You Were Born",
-    icon: "👶",
-    year: "2004",
-    description: "And then you came along, bringing so much joy!",
-  },
-  {
-    id: 4,
-    title: "Graduated University",
-    icon: "🎓",
-    year: "2026",
-    description: "A proud day marking years of hard work and dedication.",
-  },
-  {
-    id: 5,
-    title: "First Home",
-    icon: "🏡",
-    year: "2032",
-    description: "Putting down roots and building a future.",
-  },
-];
+import Spinner from "./shared/Spinner"; // Import a loading spinner component
 
 export default function Gallery() {
+  const dispatch = useDispatch();
+  // Get data from the new timelineSlice
+  const { events, loading } = useSelector((state) => state.timeline);
+
   const [petals, setPetals] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
+
+  // Fetch data when the component mounts
+  useEffect(() => {
+    dispatch(fetchTimelineEvents());
+  }, [dispatch]);
 
   useEffect(() => {
     // Generate petals only once on mount
@@ -58,6 +31,10 @@ export default function Gallery() {
     }));
     setPetals(petalsArray);
   }, []);
+
+  if (loading) {
+    return <Spinner />;
+  }
 
   return (
     <>
@@ -86,21 +63,22 @@ export default function Gallery() {
         ))}
 
         {/* The Sakura Tree Trunk */}
-        <TreeBranch className="timeline-trunk"/>
+        <TreeBranch className="timeline-trunk" />
 
         {/* Events blooming from the trunk */}
         <div className="timeline-events">
-          {initialEvents.map((event, index) => {
+          {/* Map over the REAL data from Redux */}
+          {events.map((event, index) => {
             const isLeft = index % 2 === 0;
             return (
               <motion.div
-                key={event.id}
+                key={event._id}
                 className={`timeline-event ${isLeft ? "left" : "right"}`}
+                onClick={() => setSelectedEvent(event)}
                 initial={{ opacity: 0, y: 50 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.8, delay: index * 0.3 }}
-                onClick={() => setSelectedEvent(event)}
               >
                 <div className="event-icon">{event.icon}</div>
                 <div className="event-content">
@@ -117,23 +95,17 @@ export default function Gallery() {
           {selectedEvent && (
             <motion.div
               className="modal-backdrop"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
               onClick={() => setSelectedEvent(null)}
             >
               <motion.div
                 className="modal-content"
-                initial={{ scale: 0.7, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.7, opacity: 0 }}
-                transition={{ type: "spring", damping: 15 }}
-                onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
+                onClick={(e) => e.stopPropagation()}
               >
-                <span className="modal-icon">{selectedEvent.icon}</span>
+                <span className="modal-icon">{"🗓️"}</span>
                 <h2>{selectedEvent.title}</h2>
-                <h4>{selectedEvent.year}</h4>
-                <p>{selectedEvent.description}</p>
+                <h4>{new Date(selectedEvent.date).toLocaleDateString()}</h4>
+                {/* Use the 'story' field instead of 'description' */}
+                <p>{selectedEvent.story}</p>
                 <button onClick={() => setSelectedEvent(null)}>Close</button>
               </motion.div>
             </motion.div>

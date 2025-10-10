@@ -386,6 +386,38 @@ export const getMemories = async (req, res) => {
     }
 };
 
+
+export const getMemoriesByUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    // Validate the ID format first (to avoid CastError)
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid user ID",
+      });
+    }
+
+    // Find all memories authored by this user
+    const memories = await Memory.find({ author: userId })
+      .populate("author", "fullName email")   // populate author details if needed
+      .sort({ date: -1 });                    // sort by latest first
+
+    return res.status(200).json({
+      success: true,
+      count: memories.length,
+      memories,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
 //For autocomplete tags
 
 export const getTagSuggestions = async (req, res) => {

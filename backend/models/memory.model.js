@@ -60,7 +60,11 @@ const memorySchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Memory",
         default: undefined
-    }
+    },
+    isMilestone: {
+    type: Boolean,
+    default: false // Most memories are not milestones
+  }
 }, { timestamps: true });
 
 export const Memory = mongoose.model("Memory", memorySchema);

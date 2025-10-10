@@ -26,7 +26,7 @@ export const createMemory = async (req, res) => {
     let newMemory;
 
     try {
-        const { title, story, date, tags, circleId } = req.body;
+        const { title, story, date, tags, circleId, isMilestone } = req.body;
         const files = req.files;
         const userId = req.id;
 
@@ -53,6 +53,7 @@ export const createMemory = async (req, res) => {
             circleId: circleId ? circleId : null,
             mediaURLs: [], // store array of { url, type }
             status: "processing",
+            isMilestone: isMilestone === 'true'
         });
 
         if (circleId) {
@@ -93,6 +94,29 @@ export const createMemory = async (req, res) => {
     catch (error) {
         if (newMemory && newMemory._id) await Memory.findByIdAndDelete(newMemory._id);
         console.error("❌ Error creating memory:", error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
+export const getTimelineEvents = async (req, res) => {
+    try {
+        const user = req.user; // From isAuthenticated middleware
+
+        // Find all memories in the user's family that are marked as a milestone
+        const timelineEvents = await Memory.find({
+            family: user.family,
+            isMilestone: true
+        })
+        .populate('author', 'fullName') // Get author details
+        .sort({ date: 'asc' }); // Sort by date ascending (oldest first)
+
+        return res.status(200).json({
+            success: true,
+            events: timelineEvents
+        });
+
+    } catch (error) {
+        console.log("Error fetching timeline events:", error);
         return res.status(500).json({ message: "Internal Server Error" });
     }
 };
