@@ -16,6 +16,7 @@ import Memories from './components/Memories';
 import Circles from './components/Circles';
 import { getUserCircles } from './redux/circleThunks';
 import ProtectedRoute from './components/ProtectedRoutes';
+import VerifyOtp from './components/auth/VerifyOtp';
 import Profile from './components/Profile';
 import EditProfile from './components/EditProfile';
 
@@ -23,6 +24,7 @@ const appRouter = createBrowserRouter([
   { path: '/', element: <Home /> },
   { path: '/login', element: <Login /> },
   { path: '/signup', element: <Signup /> },
+  {path: "/verify-otp", element: <VerifyOtp />},
   { path: '/join-family', element: <JoinFamily /> }, // Corrected path name
   {
     element: <ProtectedRoute />, // Wrap protected routes
