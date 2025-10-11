@@ -405,10 +405,10 @@ export default function Circles() {
                       ).unwrap();
                       // Optional: ensure freshest data from server
                       await dispatch(getUserCircles());
-                      toast.success("Circle name updated");
+                      toast.success('Circle name updated');
                       setIsSettingsOpen(false);
                     } catch (err) {
-                      toast.error(String(err || "Failed to update circle"));
+                      toast.error(String(err || 'Failed to update circle'));
                     }
                   }}
                 >

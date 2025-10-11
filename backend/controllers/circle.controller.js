@@ -45,21 +45,22 @@ export const createCircle = async (req, res) => {
 export const getUserCircles = async (req, res) => {
     const userId = req.id;
     try {
-        // Fetch user and populate circle details (owner and members)
-        const user = await User.findById(userId).populate({
-            path: 'circleId',
-            populate: [
-                { path: 'ownerId', select: 'fullName email' },
-                { path: 'memberId', select: 'fullName email' }
-            ]
-        });
+        // Fetch user (no populate) and then query circles by IDs to avoid duplicates
+        const user = await User.findById(userId).select('circleId');
 
         if (!user || !Array.isArray(user.circleId) || user.circleId.length === 0) {
             return res.status(200).json({ circles: [], success: true });
         }
 
-        // user.circleId is already an array of populated Circle docs; return as-is
-        return res.status(200).json({ circles: user.circleId, success: true });
+        // Normalize to ObjectIds and deduplicate
+        const ids = user.circleId.map((c) => (c && c._id ? c._id : c));
+        const uniqueIds = [...new Set(ids.map(String))].map((s) => s);
+
+        const circles = await Circle.find({ _id: { $in: uniqueIds } })
+            .populate('ownerId', 'fullName email')
+            .populate('memberId', 'fullName email');
+
+        return res.status(200).json({ circles, success: true });
     } catch (error) {
         console.error("Error fetching user circles:", error);
         res.status(500).json({ message: "Internal server error", success: false });
@@ -75,7 +76,7 @@ export const updateCircle = async (req, res) => {
     const { circleName } = req.body;
 
     try {
-        const circle = await Circle.findById(id);
+        let circle = await Circle.findById(id);
         if (!circle) {
             return res.status(404).json({ success: false, message: 'Circle not found' });
         }
