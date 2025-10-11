@@ -2,7 +2,9 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Navbar from "./shared/Navbar"; // Assuming a public-facing Navbar
-import {Card,CardContent} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 // Placeholder icons for features (you can replace with actual SVGs or an icon library)
 const Icon = ({ children }) => (
@@ -10,6 +12,8 @@ const Icon = ({ children }) => (
 );
 
 export default function LandingPage() {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useSelector((state) => state.auth);
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -54,8 +58,11 @@ export default function LandingPage() {
               <Button
                 size="lg"
                 className="bg-rose-600 hover:bg-rose-700 text-white rounded-xl px-8 py-6 text-lg shadow-lg"
+                onClick={() =>
+                  navigate(isAuthenticated ? "/dashboard" : "/signup")
+                }
               >
-                Create Your Family Trunk
+                Create your Virasat
               </Button>
             </motion.div>
           </motion.div>

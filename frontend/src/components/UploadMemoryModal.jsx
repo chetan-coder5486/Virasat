@@ -7,10 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
+import { validateMaxWords } from "@/lib/utils";
 
 export const UploadMemoryModal = ({ onClose, circleId = null }) => {
   const dispatch = useDispatch();
   const { loading } = useSelector((state) => state.memories);
+  const todayStr = new Date().toISOString().slice(0, 10);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -21,6 +23,7 @@ export const UploadMemoryModal = ({ onClose, circleId = null }) => {
     memoryFiles: [], // 🔹 Store multiple files
     isMilestone: false,
   });
+  const [errors, setErrors] = useState({ title: "", story: "", date: "" });
 
   // Handle input changes
   const handleChange = (e) => {
@@ -37,12 +40,47 @@ export const UploadMemoryModal = ({ onClose, circleId = null }) => {
       setFormData((prev) => ({ ...prev, [name]: checked }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
+      if (name === "title") {
+        const { valid, count } = validateMaxWords(value, 100);
+        setErrors((e) => ({
+          ...e,
+          title: valid
+            ? ""
+            : `Title has ${count} words. Maximum allowed is 100.`,
+        }));
+      }
+      if (name === "story") {
+        const { valid, count } = validateMaxWords(value, 200);
+        setErrors((e) => ({
+          ...e,
+          story: valid
+            ? ""
+            : `Story has ${count} words. Maximum allowed is 200.`,
+        }));
+      }
+      if (name === "date") {
+        const picked = new Date(value);
+        const today = new Date(todayStr);
+        const invalid = picked > today;
+        setErrors((e) => ({
+          ...e,
+          date: invalid ? "Date cannot be in the future." : "",
+        }));
+      }
     }
   };
 
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Guard against invalid title, story, or date
+    if (errors.title || errors.story || errors.date) return;
+    if (formData.date) {
+      const picked = new Date(formData.date);
+      const today = new Date(todayStr);
+      if (picked > today) return;
+    }
 
     const data = new FormData();
     data.append("title", formData.title);
@@ -89,6 +127,9 @@ export const UploadMemoryModal = ({ onClose, circleId = null }) => {
           <div>
             <Label htmlFor="title">Title</Label>
             <Input id="title" name="title" onChange={handleChange} required />
+            {errors.title && (
+              <p className="mt-1 text-sm text-red-600">{errors.title}</p>
+            )}
           </div>
 
           <div>
@@ -97,14 +138,21 @@ export const UploadMemoryModal = ({ onClose, circleId = null }) => {
               id="date"
               name="date"
               type="date"
+              max={todayStr}
               onChange={handleChange}
               required
             />
+            {errors.date && (
+              <p className="mt-1 text-sm text-red-600">{errors.date}</p>
+            )}
           </div>
 
           <div>
             <Label htmlFor="story">Story</Label>
             <Textarea id="story" name="story" onChange={handleChange} />
+            {errors.story && (
+              <p className="mt-1 text-sm text-red-600">{errors.story}</p>
+            )}
           </div>
 
           <div>
@@ -141,12 +189,22 @@ export const UploadMemoryModal = ({ onClose, circleId = null }) => {
             </Label>
           </div>
           <div className="flex justify-end gap-2 pt-4">
-            <Button type="button" className="cursor-pointer" variant="ghost" onClick={onClose}>
+            <Button
+              type="button"
+              className="cursor-pointer"
+              variant="ghost"
+              onClick={onClose}
+            >
               Cancel
             </Button>
             <Button
               type="submit"
-              disabled={loading}
+              disabled={
+                loading ||
+                Boolean(errors.title) ||
+                Boolean(errors.story) ||
+                Boolean(errors.date)
+              }
               className="bg-green-600 hover:bg-green-700 cursor-pointer"
             >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

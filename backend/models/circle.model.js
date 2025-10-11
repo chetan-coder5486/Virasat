@@ -1,25 +1,33 @@
 import mongoose from "mongoose";
 
 const circleSchema = new mongoose.Schema({
-    circleName:{
+    circleName: {
         type: String,
-        required: true
+        required: true,
+        validate: {
+            validator: function (v) {
+                if (!v) return false;
+                const words = v.trim().split(/\s+/).filter(Boolean);
+                return words.length <= 100;
+            },
+            message: 'Circle name exceeds 100 words.'
+        }
     },
-    ownerId:{
+    ownerId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
-        required:true
+        required: true
     },
-    memberId:[{
+    memberId: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref:"User",
-        default:[]
+        ref: "User",
+        default: []
     }],
-    memories:[{
+    memories: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref:"Memory",
-        default:[]
+        ref: "Memory",
+        default: []
     }]
-},{timestamps:true});
+}, { timestamps: true });
 
-export const Circle = mongoose.model("Circle",circleSchema)
+export const Circle = mongoose.model("Circle", circleSchema)

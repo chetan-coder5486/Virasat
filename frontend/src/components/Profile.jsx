@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+import React, { useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -9,25 +9,26 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogClose,
-} from '@/components/ui/dialog';
-import Navbar from './shared/Navbar';
-import { updateUserProfile } from '@/redux/authThunks';
-import { toast } from 'react-hot-toast';
+} from "@/components/ui/dialog";
+import Navbar from "./shared/Navbar";
+import { updateUserProfile } from "@/redux/authThunks";
+import { toast } from "react-hot-toast";
 
 const Profile = () => {
   const { user } = useSelector((store) => store.auth);
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [preview, setPreview] = useState(user?.profile?.profilePhoto || '');
+  const [preview, setPreview] = useState(user?.profile?.profilePhoto || "");
+  const todayStr = new Date().toISOString().slice(0, 10);
 
   const [formData, setFormData] = useState({
-    fullName: user?.fullName || '',
-    phoneNumber: user?.phoneNumber || '',
-    dob: user?.profile?.dob?.substring(0, 10) || '',
-    gender: user?.profile?.gender || '',
-    location: user?.profile?.location || '',
-    bio: user?.profile?.bio || '',
+    fullName: user?.fullName || "",
+    phoneNumber: user?.phoneNumber || "",
+    dob: user?.profile?.dob?.substring(0, 10) || "",
+    gender: user?.profile?.gender || "",
+    location: user?.profile?.location || "",
+    bio: user?.profile?.bio || "",
     profilePhoto: null,
   });
 
@@ -56,9 +57,19 @@ const Profile = () => {
   const handleSaveChanges = async () => {
     setLoading(true);
     try {
+      // Prevent saving future DOB
+      if (formData.dob) {
+        const picked = new Date(formData.dob);
+        const today = new Date(todayStr);
+        if (picked > today) {
+          toast.error("Date of birth cannot be in the future.");
+          setLoading(false);
+          return;
+        }
+      }
       const data = new FormData();
       for (const key in formData) {
-        if (formData[key] !== null && formData[key] !== '') {
+        if (formData[key] !== null && formData[key] !== "") {
           data.append(key, formData[key]);
         }
       }
@@ -67,11 +78,11 @@ const Profile = () => {
         updateUserProfile({ userId: user._id, formData: data })
       ).unwrap();
 
-      toast.success(response.message || 'Profile updated successfully!');
+      toast.success(response.message || "Profile updated successfully!");
       setDialogOpen(false);
     } catch (err) {
       console.error(err);
-      toast.error(err || 'Failed to update profile');
+      toast.error(err || "Failed to update profile");
     } finally {
       setLoading(false);
     }
@@ -92,16 +103,20 @@ const Profile = () => {
                   <div className="relative group cursor-pointer">
                     <Avatar className="w-60 h-60 border-4 border-white shadow-lg transition-transform duration-300 group-hover:scale-105">
                       {preview ? (
-                        <AvatarImage src={preview} alt={user.fullName} className="object-cover" />
+                        <AvatarImage
+                          src={preview}
+                          alt={user.fullName}
+                          className="object-cover"
+                        />
                       ) : (
                         <AvatarFallback className="bg-green-200 text-green-800 text-5xl font-bold">
                           {user.fullName
                             ? user.fullName
-                                .split(' ')
+                                .split(" ")
                                 .map((n) => n[0])
-                                .join('')
+                                .join("")
                                 .toUpperCase()
-                            : 'U'}
+                            : "U"}
                         </AvatarFallback>
                       )}
                     </Avatar>
@@ -112,7 +127,7 @@ const Profile = () => {
                 </DialogTrigger>
                 <DialogContent className="max-w-3xl p-0 bg-transparent border-none shadow-none flex items-center justify-center">
                   <img
-                    src={preview || '/placeholder.png'}
+                    src={preview || "/placeholder.png"}
                     alt={user.fullName}
                     className="rounded-2xl max-h-[80vh] object-contain shadow-2xl"
                   />
@@ -123,7 +138,9 @@ const Profile = () => {
 
           {/* User Info */}
           <div className="pt-28 pb-12 px-8 text-center">
-            <h1 className="text-3xl font-bold text-green-800">{user.fullName}</h1>
+            <h1 className="text-3xl font-bold text-green-800">
+              {user.fullName}
+            </h1>
             <p className="text-gray-500">{user.email}</p>
 
             {/* Info Grid */}
@@ -136,7 +153,9 @@ const Profile = () => {
               )}
               {user.profile?.dob && (
                 <div>
-                  <p className="text-gray-600 font-semibold">🎂 Date of Birth</p>
+                  <p className="text-gray-600 font-semibold">
+                    🎂 Date of Birth
+                  </p>
                   <p className="text-green-800">
                     {new Date(user.profile.dob).toDateString()}
                   </p>
@@ -200,6 +219,7 @@ const Profile = () => {
                       name="dob"
                       value={formData.dob}
                       onChange={handleInputChange}
+                      max={todayStr}
                       className="border p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-green-400"
                     />
                     <select
@@ -261,7 +281,7 @@ const Profile = () => {
                         className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-xl text-sm inline-flex w-max cursor-pointer"
                         disabled={loading}
                       >
-                        {loading ? 'Saving...' : 'Save Changes'}
+                        {loading ? "Saving..." : "Save Changes"}
                       </Button>
                     </div>
                   </div>

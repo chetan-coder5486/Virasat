@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { createCircle } from "@/redux/circleThunks";
+import { validateMaxWords } from "@/lib/utils";
 
 export const CreateCircleModal = ({ isOpen, onClose, familyMembers }) => {
   const dispatch = useDispatch();
@@ -13,7 +14,10 @@ export const CreateCircleModal = ({ isOpen, onClose, familyMembers }) => {
 
   const [circleName, setCircleName] = useState("");
   const [selectedMembers, setSelectedMembers] = useState([]);
-  const { loading: familyLoading, error } = useSelector((state) => state.family);
+  const [nameError, setNameError] = useState("");
+  const { loading: familyLoading, error } = useSelector(
+    (state) => state.family
+  );
   const { loading: circleLoading } = useSelector((state) => state.circle);
 
   // 2. Use useEffect to automatically select the creator when the modal opens
@@ -38,6 +42,12 @@ export const CreateCircleModal = ({ isOpen, onClose, familyMembers }) => {
 
   const handleCreateCircle = (e) => {
     e.preventDefault();
+    // Validate name max words
+    const { valid, count } = validateMaxWords(circleName, 100);
+    if (!valid) {
+      setNameError(`Circle name has ${count} words. Maximum allowed is 100.`);
+      return;
+    }
     if (!circleName.trim() || selectedMembers.length === 0) {
       alert("Please provide a circle name and select at least one member.");
       return;
@@ -94,11 +104,23 @@ export const CreateCircleModal = ({ isOpen, onClose, familyMembers }) => {
                   type="text"
                   id="circleName"
                   value={circleName}
-                  onChange={(e) => setCircleName(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setCircleName(value);
+                    const { valid, count } = validateMaxWords(value, 100);
+                    setNameError(
+                      valid
+                        ? ""
+                        : `Circle name has ${count} words. Maximum allowed is 100.`
+                    );
+                  }}
                   placeholder='e.g., "The Siblings", "Cousins Club"'
                   required
                   className="mt-1 w-full rounded-lg border-rose-200 p-2 text-rose-900 shadow-sm focus:border-rose-400 focus:ring focus:ring-rose-200 focus:ring-opacity-50"
                 />
+                {nameError && (
+                  <p className="mt-1 text-sm text-red-600">{nameError}</p>
+                )}
               </div>
 
               <div>
@@ -155,7 +177,7 @@ export const CreateCircleModal = ({ isOpen, onClose, familyMembers }) => {
               </button>
               <button
                 type="submit"
-                disabled={circleLoading}
+                disabled={circleLoading || Boolean(nameError)}
                 className={`rounded-lg px-4 py-2 text-sm font-medium text-white shadow-sm transition ${
                   circleLoading
                     ? "bg-gray-400 cursor-not-allowed"

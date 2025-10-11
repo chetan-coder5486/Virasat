@@ -3,11 +3,26 @@ import mongoose from "mongoose";
 const memorySchema = new mongoose.Schema({
     title: {
         type: String,
-        required: true
+        required: true,
+        validate: {
+            validator: function (v) {
+                if (!v) return false;
+                const words = v.trim().split(/\s+/).filter(Boolean);
+                return words.length <= 100;
+            },
+            message: 'Title exceeds 100 words.'
+        }
     },
     story: {
         type: String,
-        required: true
+        required: true,
+        validate: {
+            validator: function (v) {
+                const words = String(v || '').trim().split(/\s+/).filter(Boolean);
+                return words.length <= 200;
+            },
+            message: 'Story exceeds 200 words.'
+        }
     },
     type: {
         type: String,
@@ -41,7 +56,14 @@ const memorySchema = new mongoose.Schema({
 
     date: {
         type: Date,
-        required: true
+        required: true,
+        validate: {
+            validator: function (v) {
+                if (!v) return false;
+                return v <= new Date();
+            },
+            message: 'Event date cannot be in the future.'
+        }
     },
     tags: {
         type: [String],
@@ -58,13 +80,13 @@ const memorySchema = new mongoose.Schema({
     },
     circleId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Memory",
+        ref: "Circle",
         default: undefined
     },
     isMilestone: {
-    type: Boolean,
-    default: false // Most memories are not milestones
-  }
+        type: Boolean,
+        default: false // Most memories are not milestones
+    }
 }, { timestamps: true });
 
 export const Memory = mongoose.model("Memory", memorySchema);
