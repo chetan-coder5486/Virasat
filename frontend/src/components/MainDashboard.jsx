@@ -226,7 +226,7 @@ const Dashboard = () => {
                     <span className="font-semibold">
                       {m.mediaURLs?.length || 1}
                     </span>{" "}
-                    {m.mediaURLs?.length === 1 ? "item" : "items"}
+                    {m.mediaURLs?.length === 1 ? "item " : "items "}
                     to "{m.title}" on{" "}
                     {new Date(
                       m.createdAt || m.updatedAt || m.date

@@ -18,7 +18,8 @@ import { UploadMemoryModal } from "./UploadMemoryModal";
 import { MemoryDetailModal } from "./Memories"; // Assuming MemoryDetailModal is in Memories.jsx
 import { fetchMemories } from "@/redux/memoryThunks";
 import { setActiveCircleId } from "@/redux/circleSlice";
-import { updateCircleName } from "@/redux/circleThunks";
+import { updateCircleName, getUserCircles } from "@/redux/circleThunks";
+import { toast } from "react-hot-toast";
 
 // ====================================================================
 // Sub-Components
@@ -395,13 +396,20 @@ export default function Circles() {
                   className="mt-3 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg"
                   onClick={async () => {
                     if (!renameValue.trim()) return;
-                    await dispatch(
-                      updateCircleName({
-                        id: selectedCircle._id,
-                        circleName: renameValue.trim(),
-                      })
-                    );
-                    setIsSettingsOpen(false);
+                    try {
+                      await dispatch(
+                        updateCircleName({
+                          id: selectedCircle._id,
+                          circleName: renameValue.trim(),
+                        })
+                      ).unwrap();
+                      // Optional: ensure freshest data from server
+                      await dispatch(getUserCircles());
+                      toast.success("Circle name updated");
+                      setIsSettingsOpen(false);
+                    } catch (err) {
+                      toast.error(String(err || "Failed to update circle"));
+                    }
                   }}
                 >
                   Save name

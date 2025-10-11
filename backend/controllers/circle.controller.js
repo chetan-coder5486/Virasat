@@ -45,7 +45,7 @@ export const createCircle = async (req, res) => {
 export const getUserCircles = async (req, res) => {
     const userId = req.id;
     try {
-        // 1️⃣ Properly await the user fetch
+        // Fetch user and populate circle details (owner and members)
         const user = await User.findById(userId).populate({
             path: 'circleId',
             populate: [
@@ -54,30 +54,15 @@ export const getUserCircles = async (req, res) => {
             ]
         });
 
-        // 2️⃣ Defensive check: user might not exist or have no circles
-        if (!user || !user.circleId || user.circleId.length === 0) {
-            return res.status(200).json({
-                circles: [],
-                success: true
-            });
+        if (!user || !Array.isArray(user.circleId) || user.circleId.length === 0) {
+            return res.status(200).json({ circles: [], success: true });
         }
 
-        // 3️⃣ Now use user.circleId (array of ObjectIds)
-        const circles = await Circle.find({ _id: { $in: user.circleId } })
-            .populate('ownerId', 'fullName email')      // ✅ use correct field name (ownerId)
-            .populate('memberId', 'fullName email');
-
-        return res.status(200).json({
-            circles,
-            success: true
-        });
-
+        // user.circleId is already an array of populated Circle docs; return as-is
+        return res.status(200).json({ circles: user.circleId, success: true });
     } catch (error) {
         console.error("Error fetching user circles:", error);
-        res.status(500).json({
-            message: "Internal server error",
-            success: false
-        });
+        res.status(500).json({ message: "Internal server error", success: false });
     }
 };
 
