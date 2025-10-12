@@ -47,26 +47,44 @@ export const createMemory = async (req, res) => {
     console.log("BODY:", req.body);
     console.log("FILES:", req.files);
     console.log("USER ID:", req.id);
-    let newMemory;
 
     try {
         const { title, story, date, tags, circleId, isMilestone } = req.body;
-        const files = req.files;
+        const files = req.files || [];
         const userId = req.id;
 
         if (!title || !date || files.length === 0) {
             return res.status(400).json({
-                message: "Title, date, and atleast one file is required.",
+                message: "Title, date, and at least one file are required.",
+                success: false,
             });
         }
 
         const user = await User.findById(userId);
         if (!user) {
-            return res.status(404).json({ message: "User not found." });
+            return res.status(404).json({ message: "User not found.", success: false });
         }
 
-        // 1️⃣ Create placeholder memory
-        newMemory = await Memory.create({
+        // 1) Upload all media first; if any fails, return error (no dangling 'processing')
+        const folder = `virasat/${user.family}/memories`;
+        const uploadedResults = [];
+        try {
+            for (const file of files) {
+                const result = await uploadWithRetry(file, folder, 3);
+                uploadedResults.push(result);
+            }
+        } catch (uploadErr) {
+            console.error("❌ Upload failed:", uploadErr);
+            return res.status(502).json({ message: "Failed to upload media. Please try again.", success: false });
+        }
+
+        const formattedMedia = uploadedResults.map((r) => ({
+            url: r.secure_url,
+            type: r.resource_type,
+        }));
+
+        // 2) Create the memory as 'completed' now that uploads are done
+        const newMemory = await Memory.create({
             family: user.family,
             author: userId,
             title,
@@ -75,62 +93,28 @@ export const createMemory = async (req, res) => {
             tags: tags ? tags.split(",").map((t) => t.trim()) : [],
             type: "mixed",
             circleId: circleId ? circleId : null,
-            mediaURLs: [], // store array of { url, type }
-            status: "processing",
+            mediaURLs: formattedMedia,
+            status: "completed",
             isMilestone: isMilestone === 'true'
         });
 
         if (circleId) {
-            let circle = await Circle.findById(circleId);
+            const circle = await Circle.findById(circleId);
             if (circle) {
                 circle.memories.push(newMemory._id);
                 await circle.save();
             }
         }
 
-        // 2️⃣ Send immediate response so the client doesn't wait on uploads
-        res.status(201).json({
+        return res.status(201).json({
             success: true,
-            message: "Memory is processing...",
+            message: "Memory created successfully.",
             memory: newMemory,
         });
-
-        // 3️⃣ Background task: upload files with retry and update DB when done
-        (async () => {
-            try {
-                const folder = `virasat/${user.family}/memories`;
-                const uploadedResults = [];
-                // Process sequentially to reduce bandwidth spikes (tune as needed)
-                for (const file of files) {
-                    const result = await uploadWithRetry(file, folder, 3);
-                    uploadedResults.push(result);
-                }
-
-                const formattedMedia = uploadedResults.map((r) => ({
-                    url: r.secure_url,
-                    type: r.resource_type,
-                }));
-
-                await Memory.findByIdAndUpdate(newMemory._id, {
-                    mediaURLs: formattedMedia,
-                    status: "completed",
-                });
-
-                console.log(`✅ Memory ${newMemory._id} updated successfully with all media.`);
-            } catch (bgErr) {
-                console.error("❌ Background upload failed for memory:", newMemory?._id, bgErr);
-                // Mark memory as failed rather than deleting; keeps user feedback visible
-                if (newMemory && newMemory._id) {
-                    await Memory.findByIdAndUpdate(newMemory._id, { status: "failed" });
-                }
-            }
-        })();
     }
     catch (error) {
-        // If we fail before responding, clean up and return an error
-        if (newMemory && newMemory._id) await Memory.findByIdAndDelete(newMemory._id);
         console.error("❌ Error creating memory:", error);
-        return res.status(500).json({ message: "Internal Server Error" });
+        return res.status(500).json({ message: "Internal Server Error", success: false });
     }
 };
 
